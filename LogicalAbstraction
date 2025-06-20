@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<unionExpressionSpecification xmlns="http://www.nomagic.com/schemas/MagicDraw/StructuredExpression/2013">
+    <taggedValues>
+        <entry key="name">
+            <value>Body</value>
+        </entry>
+        <entry key="ROOT_UNION">
+            <value>true</value>
+        </entry>
+    </taggedValues>
+    <value xsi:type="callExpressionSpecification" includeCustomTypes="false" includeSubtypes="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <taggedValues>
+            <entry key="name">
+                <value>IfThenElse1</value>
+            </entry>
+        </taggedValues>
+        <argument xsi:type="callExpressionSpecification" includeCustomTypes="false" includeSubtypes="true">
+            <taggedValues>
+                <entry key="name">
+                    <value>Not1</value>
+                </entry>
+            </taggedValues>
+            <argument xsi:type="callExpressionSpecification" includeCustomTypes="false" includeSubtypes="true">
+                <taggedValues>
+                    <entry key="name">
+                        <value>IsEmpty1</value>
+                    </entry>
+                </taggedValues>
+                <argument xsi:type="callExpressionSpecification" includeCustomTypes="false" includeSubtypes="true">
+                    <taggedValues>
+                        <entry key="name">
+                            <value>Filter</value>
+                        </entry>
+                    </taggedValues>
+                    <argument xsi:type="callExpressionSpecification" includeCustomTypes="false" includeSubtypes="true">
+                        <taggedValues>
+                            <entry key="name">
+                                <value>Metachain Navigation1</value>
+                            </entry>
+                        </taggedValues>
+                        <argument xsi:type="lookupExpressionSpecification" symbol="THIS"/>
+                        <expression xsi:type="metaChainExpressionSpecification" includeCustomTypes="false" includeSubtypes="true">
+                            <chain xsi:type="stereotypeProperty" profile="SysML" stereotype="Block" tag="member" derived="true">
+                                <property stereotypeId="_11_5EAPbeta_be00301_1147424179914_458922_958">
+                                    <propertyValue xsi:type="propertyName" value="member"/>
+                                </property>
+                            </chain>
+                            <chain xsi:type="stereotypeProperty" profile="additional_stereotypes" stereotype="PartProperty" tag="type" derived="true">
+                                <property stereotypeId="_15_0_be00301_1199377756297_348405_2678">
+                                    <propertyValue xsi:type="propertyName" value="type"/>
+                                </property>
+                            </chain>
+                        </expression>
+                    </argument>
+                    <argument xsi:type="lambdaExpressionSpecification">
+                        <parameter name="arg" type="java.lang.Object" ordered="false" unique="false" multiple="false"/>
+                        <body xsi:type="callExpressionSpecification" includeCustomTypes="false" includeSubtypes="true">
+                            <taggedValues>
+                                <entry key="name">
+                                    <value>PropertyTest1</value>
+                                </entry>
+                            </taggedValues>
+                            <argument xsi:type="lookupExpressionSpecification" symbol="arg"/>
+                            <argument xsi:type="stringExpressionSpecification">
+                                <value>&lt;?xml version='1.0' encoding='UTF-8'?&gt;
+&lt;PropertyVisitorAcceptor&gt;
+	&lt;mdElement elementClass='PropertyManager'&gt;
+		&lt;mdElement elementClass='ElementListProperty'&gt;
+			&lt;propertyID&gt;QPROP:Element:appliedStereotype&lt;/propertyID&gt;
+			&lt;containment xmi:value='false'/&gt;
+			&lt;ordered xmi:value='false'/&gt;
+			&lt;value&gt;_19_0_2_130303c5_1564592930153_469453_1082&lt;/value&gt;
+		&lt;/mdElement&gt;
+	&lt;/mdElement&gt;
+&lt;/PropertyVisitorAcceptor&gt;</value>
+                            </argument>
+                            <argument xsi:type="booleanExpressionSpecification" value="false"/>
+                            <argument xsi:type="booleanExpressionSpecification" value="false"/>
+                            <argument xsi:type="booleanExpressionSpecification" value="true"/>
+                            <argument xsi:type="booleanExpressionSpecification" value="true"/>
+                            <expression xsi:type="interpretElementExpressionSpecification">
+                                <element xsi:type="elementExpressionSpecification" element="_18_5beta_8ca0285_1476867204509_502508_4139"/>
+                            </expression>
+                        </body>
+                    </argument>
+                    <expression xsi:type="interpretElementExpressionSpecification">
+                        <element xsi:type="elementExpressionSpecification" element="_18_0beta_94c0290_1392135311908_183621_3586"/>
+                    </expression>
+                </argument>
+                <expression xsi:type="interpretElementExpressionSpecification">
+                    <element xsi:type="elementExpressionSpecification" element="_19_0beta_8ca0285_1502101213659_300258_4511"/>
+                </expression>
+            </argument>
+            <expression xsi:type="interpretElementExpressionSpecification">
+                <element xsi:type="elementExpressionSpecification" element="_19_0beta_8ca0285_1502101213659_906613_4522"/>
+            </expression>
+        </argument>
+        <argument xsi:type="callExpressionSpecification" includeCustomTypes="false" includeSubtypes="true">
+            <taggedValues>
+                <entry key="name">
+                    <value>PropertyTest1</value>
+                </entry>
+            </taggedValues>
+            <argument xsi:type="lookupExpressionSpecification" symbol="THIS"/>
+            <argument xsi:type="stringExpressionSpecification">
+                <value>&lt;?xml version='1.0' encoding='UTF-8'?&gt;
+&lt;PropertyVisitorAcceptor&gt;
+	&lt;mdElement elementClass='PropertyManager'&gt;
+		&lt;mdElement elementClass='ElementListProperty'&gt;
+			&lt;propertyID&gt;QPROP:Element:appliedStereotype&lt;/propertyID&gt;
+			&lt;containment xmi:value='false'/&gt;
+			&lt;ordered xmi:value='false'/&gt;
+			&lt;value&gt;_19_0_2_130303c5_1564592930153_469453_1082&lt;/value&gt;
+		&lt;/mdElement&gt;
+	&lt;/mdElement&gt;
+&lt;/PropertyVisitorAcceptor&gt;</value>
+            </argument>
+            <argument xsi:type="booleanExpressionSpecification" value="false"/>
+            <argument xsi:type="booleanExpressionSpecification" value="false"/>
+            <argument xsi:type="booleanExpressionSpecification" value="true"/>
+            <argument xsi:type="booleanExpressionSpecification" value="true"/>
+            <expression xsi:type="interpretElementExpressionSpecification">
+                <element xsi:type="elementExpressionSpecification" element="_18_5beta_8ca0285_1476867204509_502508_4139"/>
+            </expression>
+        </argument>
+        <argument xsi:type="booleanExpressionSpecification" value="true">
+            <taggedValues>
+                <entry key="name">
+                    <value>Boolean1</value>
+                </entry>
+            </taggedValues>
+        </argument>
+        <expression xsi:type="interpretElementExpressionSpecification">
+            <element xsi:type="elementExpressionSpecification" element="_19_0beta_8ca0285_1502101213659_239801_4510"/>
+        </expression>
+    </value>
+</unionExpressionSpecification>
