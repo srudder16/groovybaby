@@ -1,0 +1,23 @@
+import com.nomagic.magicdraw.validation.ValidationHelper; 
+import com.nomagic.magicdraw.validation.ValidationRunData;
+import com.nomagic.magicdraw.uml.Finder;
+import com.nomagic.magicdraw.core.Application;
+
+
+// Configurable -- Path to validation suite
+suiteQN = "QC Quality Checks::Master Validation Suite";
+    
+    
+proj = Application.getInstance().getProject();
+
+// Find the validation suite by qualified name
+suite =  Finder.byQualifiedName().find(proj, suiteQN);
+
+// create run data based on suite.  This uses the whole model as scope, could be a set of elements instead.
+vrd = new ValidationRunData(suite, true, null, null); 
+
+// Run the validation
+vresults = ValidationHelper.validate(vrd, null, null);       
+
+// Show results on screen
+ValidationHelper.openValidationWindow(vrd, "My Results", vresults);
