@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<unionExpressionSpecification xmlns="http://www.nomagic.com/schemas/MagicDraw/StructuredExpression/2013">
+    <taggedValues>
+        <entry key="name">
+            <value>Body</value>
+        </entry>
+        <entry key="ROOT_UNION">
+            <value>true</value>
+        </entry>
+    </taggedValues>
+    <value xsi:type="callExpressionSpecification" includeCustomTypes="false" includeSubtypes="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <taggedValues>
+            <entry key="name">
+                <value>Or1</value>
+            </entry>
+        </taggedValues>
+        <argument xsi:type="callExpressionSpecification" includeCustomTypes="false" includeSubtypes="true">
+            <taggedValues>
+                <entry key="name">
+                    <value>Not1</value>
+                </entry>
+            </taggedValues>
+            <argument xsi:type="callExpressionSpecification" includeCustomTypes="false" includeSubtypes="true">
+                <taggedValues>
+                    <entry key="name">
+                        <value>IsEmpty1</value>
+                    </entry>
+                </taggedValues>
+                <argument xsi:type="unionExpressionSpecification">
+                    <taggedValues>
+                        <entry key="name">
+                            <value>Union1</value>
+                        </entry>
+                    </taggedValues>
+                    <value xsi:type="callExpressionSpecification" includeCustomTypes="true" includeSubtypes="false">
+                        <taggedValues>
+                            <entry key="name">
+                                <value>Metachain Navigation1</value>
+                            </entry>
+                        </taggedValues>
+                        <argument xsi:type="lookupExpressionSpecification" symbol="THIS"/>
+                        <expression xsi:type="metaChainExpressionSpecification" includeCustomTypes="true" includeSubtypes="true">
+                            <chain xsi:type="umlProperty" metaclass="Activity" property="ownedOperation"/>
+                        </expression>
+                    </value>
+                    <value xsi:type="callExpressionSpecification" includeCustomTypes="true" includeSubtypes="false">
+                        <taggedValues>
+                            <entry key="name">
+                                <value>Metachain Navigation2</value>
+                            </entry>
+                        </taggedValues>
+                        <argument xsi:type="lookupExpressionSpecification" symbol="THIS"/>
+                        <expression xsi:type="metaChainExpressionSpecification" includeCustomTypes="true" includeSubtypes="true">
+                            <chain xsi:type="umlProperty" metaclass="Activity" property="ownedDiagram"/>
+                        </expression>
+                    </value>
+                </argument>
+                <expression xsi:type="interpretElementExpressionSpecification">
+                    <element xsi:type="elementExpressionSpecification" element="_19_0beta_8ca0285_1502101213659_300258_4511"/>
+                </expression>
+            </argument>
+            <expression xsi:type="interpretElementExpressionSpecification">
+                <element xsi:type="elementExpressionSpecification" element="_19_0beta_8ca0285_1502101213659_906613_4522"/>
+            </expression>
+        </argument>
+        <argument xsi:type="callExpressionSpecification" includeCustomTypes="false" includeSubtypes="true">
+            <taggedValues>
+                <entry key="name">
+                    <value>First1</value>
+                </entry>
+            </taggedValues>
+            <argument xsi:type="callExpressionSpecification" includeCustomTypes="true" includeSubtypes="false">
+                <taggedValues>
+                    <entry key="name">
+                        <value>Metachain Navigation1</value>
+                    </entry>
+                </taggedValues>
+                <argument xsi:type="lookupExpressionSpecification" symbol="THIS"/>
+                <expression xsi:type="metaChainExpressionSpecification" includeCustomTypes="true" includeSubtypes="true">
+                    <chain xsi:type="umlProperty" metaclass="Activity" property="isLeaf"/>
+                </expression>
+            </argument>
+            <expression xsi:type="interpretElementExpressionSpecification">
+                <element xsi:type="elementExpressionSpecification" element="_19_0beta_8ca0285_1502101213659_947847_4502"/>
+            </expression>
+        </argument>
+        <expression xsi:type="interpretElementExpressionSpecification">
+            <element xsi:type="elementExpressionSpecification" element="_19_0beta_8ca0285_1502101213659_986593_4523"/>
+        </expression>
+    </value>
+</unionExpressionSpecification>
