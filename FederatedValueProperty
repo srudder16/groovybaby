@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<unionExpressionSpecification xmlns="http://www.nomagic.com/schemas/MagicDraw/StructuredExpression/2013">
+    <taggedValues>
+        <entry key="name">
+            <value>Body</value>
+        </entry>
+        <entry key="ROOT_UNION">
+            <value>true</value>
+        </entry>
+    </taggedValues>
+    <value xsi:type="callExpressionSpecification" includeCustomTypes="false" includeSubtypes="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <taggedValues>
+            <entry key="name">
+                <value>Or1</value>
+            </entry>
+        </taggedValues>
+        <argument xsi:type="callExpressionSpecification" includeCustomTypes="false" includeSubtypes="true">
+            <taggedValues>
+                <entry key="name">
+                    <value>Or1</value>
+                </entry>
+            </taggedValues>
+            <argument xsi:type="callExpressionSpecification" includeCustomTypes="false" includeSubtypes="true">
+                <taggedValues>
+                    <entry key="name">
+                        <value>IsEmpty1</value>
+                    </entry>
+                </taggedValues>
+                <argument xsi:type="callExpressionSpecification" includeCustomTypes="true" includeSubtypes="false">
+                    <taggedValues>
+                        <entry key="name">
+                            <value>Metachain Navigation1</value>
+                        </entry>
+                    </taggedValues>
+                    <type xsi:type="stereotypeIdType" stereotypeId="_12_1_8740266_1173094714531_37548_260"/>
+                    <argument xsi:type="lookupExpressionSpecification" symbol="THIS"/>
+                    <expression xsi:type="metaChainExpressionSpecification" includeCustomTypes="true" includeSubtypes="true">
+                        <chain xsi:type="stereotypeProperty" profile="additional_stereotypes" stereotype="ValueProperty" tag="owner" derived="true">
+                            <property stereotypeId="_12_0_be00301_1164123483951_695645_2041">
+                                <propertyValue xsi:type="propertyName" value="owner"/>
+                            </property>
+                        </chain>
+                        <chain xsi:type="stereotypeProperty" profile="SysML" stereotype="Block" tag="_directedRelationshipOfSource" derived="true">
+                            <property stereotypeId="_11_5EAPbeta_be00301_1147424179914_458922_958">
+                                <propertyValue xsi:type="propertyName" value="_directedRelationshipOfSource"/>
+                            </property>
+                        </chain>
+                        <chain xsi:type="umlProperty" metaclass="Realization" property="target"/>
+                    </expression>
+                </argument>
+                <expression xsi:type="interpretElementExpressionSpecification">
+                    <element xsi:type="elementExpressionSpecification" element="_19_0beta_8ca0285_1502101213659_300258_4511"/>
+                </expression>
+            </argument>
+            <argument xsi:type="callExpressionSpecification" includeCustomTypes="false" includeSubtypes="true">
+                <taggedValues>
+                    <entry key="name">
+                        <value>IsEmpty1</value>
+                    </entry>
+                </taggedValues>
+                <argument xsi:type="callExpressionSpecification" includeCustomTypes="true" includeSubtypes="false">
+                    <taggedValues>
+                        <entry key="name">
+                            <value>Metachain Navigation1</value>
+                        </entry>
+                    </taggedValues>
+                    <type xsi:type="metaclassType" metaclass="Realization"/>
+                    <argument xsi:type="lookupExpressionSpecification" symbol="THIS"/>
+                    <expression xsi:type="metaChainExpressionSpecification" includeCustomTypes="true" includeSubtypes="true">
+                        <chain xsi:type="stereotypeProperty" profile="additional_stereotypes" stereotype="ValueProperty" tag="_directedRelationshipOfSource" derived="true">
+                            <property stereotypeId="_12_0_be00301_1164123483951_695645_2041">
+                                <propertyValue xsi:type="propertyName" value="_directedRelationshipOfSource"/>
+                            </property>
+                        </chain>
+                    </expression>
+                </argument>
+                <expression xsi:type="interpretElementExpressionSpecification">
+                    <element xsi:type="elementExpressionSpecification" element="_19_0beta_8ca0285_1502101213659_300258_4511"/>
+                </expression>
+            </argument>
+            <expression xsi:type="interpretElementExpressionSpecification">
+                <element xsi:type="elementExpressionSpecification" element="_19_0beta_8ca0285_1502101213659_986593_4523"/>
+            </expression>
+        </argument>
+        <argument xsi:type="callExpressionSpecification" includeCustomTypes="false" includeSubtypes="true">
+            <taggedValues>
+                <entry key="name">
+                    <value>IfThenElse1</value>
+                </entry>
+            </taggedValues>
+            <argument xsi:type="callExpressionSpecification" includeCustomTypes="false" includeSubtypes="true">
+                <taggedValues>
+                    <entry key="name">
+                        <value>Or1</value>
+                    </entry>
+                </taggedValues>
+                <argument xsi:type="callExpressionSpecification" includeCustomTypes="false" includeSubtypes="true">
+                    <taggedValues>
+                        <entry key="name">
+                            <value>Not1</value>
+                        </entry>
+                    </taggedValues>
+                    <argument xsi:type="callExpressionSpecification" includeCustomTypes="false" includeSubtypes="true">
+                        <taggedValues>
+                            <entry key="name">
+                                <value>IsEmpty1</value>
+                            </entry>
+                        </taggedValues>
+                        <argument xsi:type="callExpressionSpecification" includeCustomTypes="false" includeSubtypes="true">
+                            <taggedValues>
+                                <entry key="name">
+                                    <value>Intersect1</value>
+                                </entry>
+                            </taggedValues>
+                            <argument xsi:type="elementExpressionSpecification" element="_19_0_2_130303c5_1564592930153_469453_1082">
+                                <taggedValues>
+                                    <entry key="name">
+                                        <value>Element1</value>
+                                    </entry>
+                                </taggedValues>
+                            </argument>
+                            <argument xsi:type="unionExpressionSpecification">
+                                <taggedValues>
+                                    <entry key="name">
+                                        <value>Union1</value>
+                                    </entry>
+                                </taggedValues>
+                                <value xsi:type="callExpressionSpecification" includeCustomTypes="true" includeSubtypes="false">
+                                    <taggedValues>
+                                        <entry key="name">
+                                            <value>Metachain Navigation1</value>
+                                        </entry>
+                                    </taggedValues>
+                                    <argument xsi:type="lookupExpressionSpecification" symbol="THIS"/>
+                                    <expression xsi:type="metaChainExpressionSpecification" includeCustomTypes="true" includeSubtypes="true">
+                                        <chain xsi:type="stereotypeProperty" profile="additional_stereotypes" stereotype="ValueProperty" tag="owner" derived="true">
+                                            <property stereotypeId="_12_0_be00301_1164123483951_695645_2041">
+                                                <propertyValue xsi:type="propertyName" value="owner"/>
+                                            </property>
+                                        </chain>
+                                        <chain xsi:type="stereotypeProperty" profile="SysML" stereotype="Block" tag="appliedStereotype" derived="true">
+                                            <property stereotypeId="_11_5EAPbeta_be00301_1147424179914_458922_958">
+                                                <propertyValue xsi:type="propertyName" value="appliedStereotype"/>
+                                            </property>
+                                        </chain>
+                                    </expression>
+                                </value>
+                                <value xsi:type="callExpressionSpecification" includeCustomTypes="true" includeSubtypes="false">
+                                    <taggedValues>
+                                        <entry key="name">
+                                            <value>Metachain Navigation1</value>
+                                        </entry>
+                                    </taggedValues>
+                                    <argument xsi:type="lookupExpressionSpecification" symbol="THIS"/>
+                                    <expression xsi:type="metaChainExpressionSpecification" includeCustomTypes="true" includeSubtypes="true">
+                                        <chain xsi:type="stereotypeProperty" profile="additional_stereotypes" stereotype="ValueProperty" tag="owner" derived="true">
+                                            <property stereotypeId="_12_0_be00301_1164123483951_695645_2041">
+                                                <propertyValue xsi:type="propertyName" value="owner"/>
+                                            </property>
+                                        </chain>
+                                        <chain xsi:type="umlProperty" metaclass="Element" property="_directedRelationshipOfSource"/>
+                                        <chain xsi:type="umlProperty" metaclass="Realization" property="target"/>
+                                        <chain xsi:type="stereotypeProperty" profile="SysML" stereotype="Block" tag="appliedStereotype" derived="true">
+                                            <property stereotypeId="_11_5EAPbeta_be00301_1147424179914_458922_958">
+                                                <propertyValue xsi:type="propertyName" value="appliedStereotype"/>
+                                            </property>
+                                        </chain>
+                                    </expression>
+                                </value>
+                            </argument>
+                            <expression xsi:type="interpretElementExpressionSpecification">
+                                <element xsi:type="elementExpressionSpecification" element="_19_0beta_8ca0285_1502105937262_6441_5497"/>
+                            </expression>
+                        </argument>
+                        <expression xsi:type="interpretElementExpressionSpecification">
+                            <element xsi:type="elementExpressionSpecification" element="_19_0beta_8ca0285_1502101213659_300258_4511"/>
+                        </expression>
+                    </argument>
+                    <expression xsi:type="interpretElementExpressionSpecification">
+                        <element xsi:type="elementExpressionSpecification" element="_19_0beta_8ca0285_1502101213659_906613_4522"/>
+                    </expression>
+                </argument>
+                <argument xsi:type="callExpressionSpecification" includeCustomTypes="false" includeSubtypes="true">
+                    <taggedValues>
+                        <entry key="name">
+                            <value>Not1</value>
+                        </entry>
+                    </taggedValues>
+                    <argument xsi:type="callExpressionSpecification" includeCustomTypes="false" includeSubtypes="true">
+                        <taggedValues>
+                            <entry key="name">
+                                <value>IsEmpty1</value>
+                            </entry>
+                        </taggedValues>
+                        <argument xsi:type="callExpressionSpecification" includeCustomTypes="false" includeSubtypes="true">
+                            <taggedValues>
+                                <entry key="name">
+                                    <value>Intersect1</value>
+                                </entry>
+                            </taggedValues>
+                            <argument xsi:type="elementExpressionSpecification" element="_19_0_2_130303c5_1564592930151_541350_1078">
+                                <taggedValues>
+                                    <entry key="name">
+                                        <value>Element1</value>
+                                    </entry>
+                                </taggedValues>
+                            </argument>
+                            <argument xsi:type="unionExpressionSpecification">
+                                <taggedValues>
+                                    <entry key="name">
+                                        <value>Union1</value>
+                                    </entry>
+                                </taggedValues>
+                                <value xsi:type="callExpressionSpecification" includeCustomTypes="true" includeSubtypes="false">
+                                    <taggedValues>
+                                        <entry key="name">
+                                            <value>Metachain Navigation1</value>
+                                        </entry>
+                                    </taggedValues>
+                                    <argument xsi:type="lookupExpressionSpecification" symbol="THIS"/>
+                                    <expression xsi:type="metaChainExpressionSpecification" includeCustomTypes="true" includeSubtypes="true">
+                                        <chain xsi:type="stereotypeProperty" profile="additional_stereotypes" stereotype="ValueProperty" tag="owner" derived="true">
+                                            <property stereotypeId="_12_0_be00301_1164123483951_695645_2041">
+                                                <propertyValue xsi:type="propertyName" value="owner"/>
+                                            </property>
+                                        </chain>
+                                        <chain xsi:type="stereotypeProperty" profile="SysML" stereotype="Block" tag="appliedStereotype" derived="true">
+                                            <property stereotypeId="_11_5EAPbeta_be00301_1147424179914_458922_958">
+                                                <propertyValue xsi:type="propertyName" value="appliedStereotype"/>
+                                            </property>
+                                        </chain>
+                                    </expression>
+                                </value>
+                                <value xsi:type="callExpressionSpecification" includeCustomTypes="true" includeSubtypes="false">
+                                    <taggedValues>
+                                        <entry key="name">
+                                            <value>Metachain Navigation1</value>
+                                        </entry>
+                                    </taggedValues>
+                                    <argument xsi:type="lookupExpressionSpecification" symbol="THIS"/>
+                                    <expression xsi:type="metaChainExpressionSpecification" includeCustomTypes="true" includeSubtypes="true">
+                                        <chain xsi:type="stereotypeProperty" profile="additional_stereotypes" stereotype="ValueProperty" tag="owner" derived="true">
+                                            <property stereotypeId="_12_0_be00301_1164123483951_695645_2041">
+                                                <propertyValue xsi:type="propertyName" value="owner"/>
+                                            </property>
+                                        </chain>
+                                        <chain xsi:type="umlProperty" metaclass="Element" property="_directedRelationshipOfSource"/>
+                                        <chain xsi:type="umlProperty" metaclass="Realization" property="target"/>
+                                        <chain xsi:type="stereotypeProperty" profile="SysML" stereotype="Block" tag="appliedStereotype" derived="true">
+                                            <property stereotypeId="_11_5EAPbeta_be00301_1147424179914_458922_958">
+                                                <propertyValue xsi:type="propertyName" value="appliedStereotype"/>
+                                            </property>
+                                        </chain>
+                                    </expression>
+                                </value>
+                            </argument>
+                            <expression xsi:type="interpretElementExpressionSpecification">
+                                <element xsi:type="elementExpressionSpecification" element="_19_0beta_8ca0285_1502105937262_6441_5497"/>
+                            </expression>
+                        </argument>
+                        <expression xsi:type="interpretElementExpressionSpecification">
+                            <element xsi:type="elementExpressionSpecification" element="_19_0beta_8ca0285_1502101213659_300258_4511"/>
+                        </expression>
+                    </argument>
+                    <expression xsi:type="interpretElementExpressionSpecification">
+                        <element xsi:type="elementExpressionSpecification" element="_19_0beta_8ca0285_1502101213659_906613_4522"/>
+                    </expression>
+                </argument>
+                <expression xsi:type="interpretElementExpressionSpecification">
+                    <element xsi:type="elementExpressionSpecification" element="_19_0beta_8ca0285_1502101213659_986593_4523"/>
+                </expression>
+            </argument>
+            <argument xsi:type="callExpressionSpecification" includeCustomTypes="false" includeSubtypes="true">
+                <taggedValues>
+                    <entry key="name">
+                        <value>IsEmpty1</value>
+                    </entry>
+                </taggedValues>
+                <argument xsi:type="unionExpressionSpecification">
+                    <taggedValues>
+                        <entry key="name">
+                            <value>Union1</value>
+                        </entry>
+                    </taggedValues>
+                    <value xsi:type="callExpressionSpecification" includeCustomTypes="false" includeSubtypes="true">
+                        <taggedValues>
+                            <entry key="name">
+                                <value>Exclude1</value>
+                            </entry>
+                        </taggedValues>
+                        <argument xsi:type="callExpressionSpecification" includeCustomTypes="true" includeSubtypes="false">
+                            <taggedValues>
+                                <entry key="name">
+                                    <value>Metachain Navigation1</value>
+                                </entry>
+                            </taggedValues>
+                            <argument xsi:type="lookupExpressionSpecification" symbol="THIS"/>
+                            <expression xsi:type="metaChainExpressionSpecification" includeCustomTypes="true" includeSubtypes="true">
+                                <chain xsi:type="stereotypeProperty" profile="additional_stereotypes" stereotype="ValueProperty" tag="type" derived="true">
+                                    <property stereotypeId="_12_0_be00301_1164123483951_695645_2041">
+                                        <propertyValue xsi:type="propertyName" value="type"/>
+                                    </property>
+                                </chain>
+                            </expression>
+                        </argument>
+                        <argument xsi:type="callExpressionSpecification" includeCustomTypes="true" includeSubtypes="false">
+                            <taggedValues>
+                                <entry key="name">
+                                    <value>Metachain Navigation1</value>
+                                </entry>
+                            </taggedValues>
+                            <argument xsi:type="lookupExpressionSpecification" symbol="THIS"/>
+                            <expression xsi:type="metaChainExpressionSpecification" includeCustomTypes="true" includeSubtypes="true">
+                                <chain xsi:type="stereotypeProperty" profile="additional_stereotypes" stereotype="ValueProperty" tag="_directedRelationshipOfSource" derived="true">
+                                    <property stereotypeId="_12_0_be00301_1164123483951_695645_2041">
+                                        <propertyValue xsi:type="propertyName" value="_directedRelationshipOfSource"/>
+                                    </property>
+                                </chain>
+                                <chain xsi:type="umlProperty" metaclass="Realization" property="target"/>
+                                <chain xsi:type="stereotypeProperty" profile="additional_stereotypes" stereotype="ValueProperty" tag="type" derived="true">
+                                    <property stereotypeId="_12_0_be00301_1164123483951_695645_2041">
+                                        <propertyValue xsi:type="propertyName" value="type"/>
+                                    </property>
+                                </chain>
+                            </expression>
+                        </argument>
+                        <expression xsi:type="interpretElementExpressionSpecification">
+                            <element xsi:type="elementExpressionSpecification" element="_17_0_5beta_f720368_1373897929113_784143_3302"/>
+                        </expression>
+                    </value>
+                    <value xsi:type="callExpressionSpecification" includeCustomTypes="false" includeSubtypes="true">
+                        <taggedValues>
+                            <entry key="name">
+                                <value>Exclude2</value>
+                            </entry>
+                        </taggedValues>
+                        <argument xsi:type="callExpressionSpecification" includeCustomTypes="true" includeSubtypes="false">
+                            <taggedValues>
+                                <entry key="name">
+                                    <value>Metachain Navigation1</value>
+                                </entry>
+                            </taggedValues>
+                            <argument xsi:type="lookupExpressionSpecification" symbol="THIS"/>
+                            <expression xsi:type="metaChainExpressionSpecification" includeCustomTypes="true" includeSubtypes="true">
+                                <chain xsi:type="stereotypeProperty" profile="additional_stereotypes" stereotype="ValueProperty" tag="_directedRelationshipOfSource" derived="true">
+                                    <property stereotypeId="_12_0_be00301_1164123483951_695645_2041">
+                                        <propertyValue xsi:type="propertyName" value="_directedRelationshipOfSource"/>
+                                    </property>
+                                </chain>
+                                <chain xsi:type="umlProperty" metaclass="Realization" property="target"/>
+                                <chain xsi:type="stereotypeProperty" profile="additional_stereotypes" stereotype="ValueProperty" tag="type" derived="true">
+                                    <property stereotypeId="_12_0_be00301_1164123483951_695645_2041">
+                                        <propertyValue xsi:type="propertyName" value="type"/>
+                                    </property>
+                                </chain>
+                            </expression>
+                        </argument>
+                        <argument xsi:type="callExpressionSpecification" includeCustomTypes="true" includeSubtypes="false">
+                            <taggedValues>
+                                <entry key="name">
+                                    <value>Metachain Navigation1</value>
+                                </entry>
+                            </taggedValues>
+                            <argument xsi:type="lookupExpressionSpecification" symbol="THIS"/>
+                            <expression xsi:type="metaChainExpressionSpecification" includeCustomTypes="true" includeSubtypes="true">
+                                <chain xsi:type="stereotypeProperty" profile="additional_stereotypes" stereotype="ValueProperty" tag="type" derived="true">
+                                    <property stereotypeId="_12_0_be00301_1164123483951_695645_2041">
+                                        <propertyValue xsi:type="propertyName" value="type"/>
+                                    </property>
+                                </chain>
+                            </expression>
+                        </argument>
+                        <expression xsi:type="interpretElementExpressionSpecification">
+                            <element xsi:type="elementExpressionSpecification" element="_17_0_5beta_f720368_1373897929113_784143_3302"/>
+                        </expression>
+                    </value>
+                </argument>
+                <expression xsi:type="interpretElementExpressionSpecification">
+                    <element xsi:type="elementExpressionSpecification" element="_19_0beta_8ca0285_1502101213659_300258_4511"/>
+                </expression>
+            </argument>
+            <argument xsi:type="booleanExpressionSpecification" value="true">
+                <taggedValues>
+                    <entry key="name">
+                        <value>Boolean1</value>
+                    </entry>
+                </taggedValues>
+            </argument>
+            <expression xsi:type="interpretElementExpressionSpecification">
+                <element xsi:type="elementExpressionSpecification" element="_19_0beta_8ca0285_1502101213659_239801_4510"/>
+            </expression>
+        </argument>
+        <expression xsi:type="interpretElementExpressionSpecification">
+            <element xsi:type="elementExpressionSpecification" element="_19_0beta_8ca0285_1502101213659_986593_4523"/>
+        </expression>
+    </value>
+</unionExpressionSpecification>
