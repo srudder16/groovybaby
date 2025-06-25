@@ -1,0 +1,24 @@
+import com.nomagic.magicdraw.core.*
+import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.*
+import com.nomagic.uml2.ext.jmi.helpers.*
+
+// Get the current project
+def project = Application.getInstance().getProject()
+def model = project.getModel()
+
+// Find all relationships with "ordered" property set to true
+def orderedRelationships = []
+
+// Query all elements in the model
+ModelHelper.getAllElementsOfType(model, Association.class).each { association ->
+    if (association.hasValue(StereotypesHelper.getStereotype(project, "ordered"))) {
+        orderedRelationships.add(association)
+    }
+}
+
+// Alternative: Check for ordered property on association ends
+ModelHelper.getAllElementsOfType(model, Property.class).each { property ->
+    if (property.isOrdered()) {
+        orderedRelationships.add(property.getAssociation())
+    }
+}
