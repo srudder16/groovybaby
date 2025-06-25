@@ -1,24 +1,60 @@
-import com.nomagic.magicdraw.core.*
+                                           import com.nomagic.magicdraw.core.*
 import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.*
-import com.nomagic.uml2.ext.jmi.helpers.*
 
-// Get the current project
+// Get the current project and model
 def project = Application.getInstance().getProject()
 def model = project.getModel()
 
-// Find all relationships with "ordered" property set to true
-def orderedRelationships = []
+println "Searching for associations with ordered member ends..."
 
-// Query all elements in the model
-ModelHelper.getAllElementsOfType(model, Association.class).each { association ->
-    if (association.hasValue(StereotypesHelper.getStereotype(project, "ordered"))) {
-        orderedRelationships.add(association)
+def associationsWithOrderedEnds = []
+
+// Recursive function to find all associations
+def findAssociations
+findAssociations = { element ->
+    def associations = []
+    
+    if (element instanceof Association) {
+        associations.add(element)
+    }
+    
+    // Check owned elements recursively
+    element.getOwnedElement().each { ownedElement ->
+        associations.addAll(findAssociations(ownedElement))
+    }
+    
+    return associations
+}
+
+// Get all associations
+def allAssociations = findAssociations(model)
+
+// Check each association for ordered member ends
+allAssociations.each { association ->
+    def orderedEnds = []
+    
+    // Check each member end of the association
+    association.getMemberEnd().each { memberEnd ->
+        if (memberEnd.isOrdered()) {
+            orderedEnds.add(memberEnd)
+        }
+    }
+    
+    // If any member end is ordered, add to results
+    if (!orderedEnds.isEmpty()) {
+        associationsWithOrderedEnds.add([
+            association: association,
+            orderedEnds: orderedEnds
+        ])
+        
+        println "Found association: '${association.getName() ?: 'unnamed'}'"
+        orderedEnds.each { end ->
+            def endType = end.getType()?.getName() ?: 'untyped'
+            println "  - Ordered end: '${end.getName() ?: 'unnamed'}' (type: ${endType})"
+        }
+        println ""
     }
 }
 
-// Alternative: Check for ordered property on association ends
-ModelHelper.getAllElementsOfType(model, Property.class).each { property ->
-    if (property.isOrdered()) {
-        orderedRelationships.add(property.getAssociation())
-    }
-}
+println "Summary:"
+println "Total associations with ordered member ends: ${associationsWithOrderedEnds.size()}"
