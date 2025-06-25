@@ -1,0 +1,43 @@
+import com.nomagic.magicdraw.core.*
+import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.*
+import com.nomagic.uml2.ext.jmi.helpers.*
+
+// Get the current project and model
+def project = Application.getInstance().getProject()
+def model = project.getModel()
+
+println "Searching for associations with ordered member ends..."
+
+def associationsWithOrderedEnds = []
+
+// Query all associations in the model
+ModelHelper.getAllElementsOfType(model, Association.class).each { association ->
+    def orderedEnds = []
+    
+    // Check each member end of the association
+    association.getMemberEnd().each { memberEnd ->
+        if (memberEnd.isOrdered()) {
+            orderedEnds.add(memberEnd)
+        }
+    }
+    
+    // If any member end is ordered, add the association to results
+    if (!orderedEnds.isEmpty()) {
+        associationsWithOrderedEnds.add([
+            association: association,
+            orderedEnds: orderedEnds
+        ])
+        
+        println "Found association: '${association.getName() ?: association.getQualifiedName()}'"
+        orderedEnds.each { end ->
+            println "  - Ordered end: '${end.getName()}' (type: ${end.getType()?.getName()})"
+        }
+        println ""
+    }
+}
+
+println "Summary:"
+println "Total associations with ordered member ends: ${associationsWithOrderedEnds.size()}"
+
+// Optional: Return results for further processing
+return associationsWithOrderedEnds
