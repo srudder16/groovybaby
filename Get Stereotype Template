@@ -1,0 +1,7 @@
+// If "ordered" is applied as a stereotype
+def orderedStereotype = StereotypesHelper.getStereotype(project, "ordered")
+
+def orderedRelationships = ModelHelper.getAllElementsOfType(model, Association.class)
+    .findAll { association ->
+        StereotypesHelper.hasStereotype(association, orderedStereotype)
+    }
