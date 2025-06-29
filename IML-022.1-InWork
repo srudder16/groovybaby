@@ -1,0 +1,337 @@
+/**
+ * Validation Rule: Conceptual IML Service Port Stereotype Check
+ * IML-022.1
+ * Requirement: When a Conceptual Interfaces Modeling Library (IML) Service 
+ * owns a port, the port shall be stereotyped by a Conceptual IML Port stereotype.
+ */
+
+// Import necessary Cameo/MagicDraw classes
+import com.nomagic.magicdraw.core.Application
+import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.*
+import com.nomagic.uml2.ext.magicdraw.compositestructures.mdports.*
+import com.nomagic.uml2.ext.magicdraw.classes.mdinterfaces.*
+import com.nomagic.uml2.ext.magicdraw.auxiliaryconstructs.mdmodels.*
+import com.nomagic.uml2.ext.magicdraw.mdprofiles.*
+
+// Get the current element being validated
+def currentElement = _context
+
+// Check if the current element is a Conceptual IML Service
+if (!isConceptualIMLServiceElement(currentElement)) {
+    return // Rule doesn't apply to non-Conceptual IML Service elements
+}
+
+// Get all owned ports of the service
+def ownedPorts = getOwnedPorts(currentElement)
+
+// Validate each owned port
+ownedPorts.each { port ->
+    def conceptualIMLPortStereotypes = getConceptualIMLPortStereotypes(port)
+    
+    if (conceptualIMLPortStereotypes.isEmpty()) {
+        def currentStereotypes = getCurrentStereotypes(port)
+        def stereotypeInfo = currentStereotypes.isEmpty() ? 
+            "no stereotypes applied" : 
+            "stereotypes: ${currentStereotypes.collect { it.getName() }.join(', ')}"
+            
+        _validation.addError(port,
+            "Port '${port.getName()}' owned by Conceptual IML Service '${currentElement.getName()}' does not have a Conceptual IML Port stereotype (currently has ${stereotypeInfo}). It must be stereotyped by a Conceptual IML Port stereotype.")
+    } else if (conceptualIMLPortStereotypes.size() > 1) {
+        def stereotypeNames = conceptualIMLPortStereotypes.collect { it.getName() }.join(", ")
+        _validation.addWarning(port,
+            "Port '${port.getName()}' owned by Conceptual IML Service '${currentElement.getName()}' has multiple Conceptual IML Port stereotypes [${stereotypeNames}]. Consider using only one primary stereotype.")
+    }
+    // If exactly one conceptual IML port stereotype, validation passes
+}
+
+/**
+ * Helper method to determine if an element is a Conceptual IML Service element
+ */
+def isConceptualIMLServiceElement(element) {
+    return isIMLServiceElement(element) && isConceptualElement(element)
+}
+
+/**
+ * Helper method to determine if an element is an IML Service element
+ */
+def isIMLServiceElement(element) {
+    if (element == null) return false
+    
+    // Check for specific stereotype
+    def imlServiceStereotype = element.getAppliedStereotype("IMLService") ||
+                              element.getAppliedStereotype("IML_Service") ||
+                              element.getAppliedStereotype("InterfacesModelingLibrary::Service")
+    
+    if (imlServiceStereotype != null) {
+        return true
+    }
+    
+    // Check if element is in IML package/library
+    def owner = element.getOwner()
+    while (owner != null) {
+        if (owner.getName()?.contains("IML") || 
+            owner.getName()?.contains("Interfaces Modeling Library") ||
+            owner.getName()?.contains("InterfacesModelingLibrary")) {
+            return true
+        }
+        owner = owner.getOwner()
+    }
+    
+    // Check naming convention
+    def elementName = element.getName()
+    if (elementName?.contains("IML") || elementName?.endsWith("Service")) {
+        return true
+    }
+    
+    return false
+}
+
+/**
+ * Helper method to determine if an element is a Conceptual element
+ */
+def isConceptualElement(element) {
+    if (element == null) return false
+    
+    // Check for Conceptual stereotype
+    def conceptualStereotype = element.getAppliedStereotype("Conceptual") ||
+                              element.getAppliedStereotype("ConceptualElement")
+    
+    if (conceptualStereotype != null) {
+        return true
+    }
+    
+    // Check tagged values for conceptual designation
+    def taggedValues = element.getTaggedValue()
+    for (taggedValue in taggedValues) {
+        def tagName = taggedValue.getTagDefinition().getName()
+        def tagValue = taggedValue.getValue()?.toString()?.toLowerCase()
+        
+        if ((tagName == "ElementType" && tagValue?.contains("conceptual")) ||
+            (tagName == "Level" && tagValue?.contains("conceptual")) ||
+            (tagName == "AbstractionLevel" && tagValue?.contains("conceptual"))) {
+            return true
+        }
+    }
+    
+    // Check if element is in Conceptual package
+    def owner = element.getOwner()
+    while (owner != null) {
+        if (owner.getName()?.toLowerCase()?.contains("conceptual")) {
+            return true
+        }
+        owner = owner.getOwner()
+    }
+    
+    return false
+}
+
+/**
+ * Helper method to get all owned ports of an element
+ */
+def getOwnedPorts(element) {
+    def ports = []
+    
+    // Get owned ports directly from owned elements
+    def ownedElements = element.getOwnedElement()
+    ownedElements.each { ownedElement ->
+        if (ownedElement instanceof Port) {
+            ports.add(ownedElement)
+        }
+    }
+    
+    // If element is a component, also check component's specific port collection
+    if (element instanceof com.nomagic.uml2.ext.magicdraw.components.mdbasiccomponents.Component) {
+        def componentPorts = element.getOwnedPort()
+        if (componentPorts != null) {
+            componentPorts.each { port ->
+                if (!ports.contains(port)) {
+                    ports.add(port)
+                }
+            }
+        }
+    }
+    
+    // If element is a class, check for ports in owned elements
+    if (element instanceof Class) {
+        def classOwnedElements = element.getOwnedElement()
+        classOwnedElements.each { ownedElement ->
+            if (ownedElement instanceof Port && !ports.contains(ownedElement)) {
+                ports.add(ownedElement)
+            }
+        }
+    }
+    
+    return ports
+}
+
+/**
+ * Helper method to get all Conceptual IML Port stereotypes applied to a port
+ */
+def getConceptualIMLPortStereotypes(port) {
+    def conceptualIMLPortStereotypes = []
+    
+    if (port == null) return conceptualIMLPortStereotypes
+    
+    // Get all applied stereotypes
+    def appliedStereotypes = port.getAppliedStereotype()
+    
+    appliedStereotypes.each { stereotype ->
+        if (isConceptualIMLPortStereotype(stereotype)) {
+            conceptualIMLPortStereotypes.add(stereotype)
+        }
+    }
+    
+    return conceptualIMLPortStereotypes
+}
+
+/**
+ * Helper method to determine if a stereotype is a Conceptual IML Port stereotype
+ */
+def isConceptualIMLPortStereotype(stereotype) {
+    if (stereotype == null) return false
+    
+    def stereotypeName = stereotype.getName()?.toLowerCase()
+    def qualifiedName = stereotype.getQualifiedName()?.toLowerCase()
+    
+    // Method 1: Direct name matching for common Conceptual IML Port stereotypes
+    def conceptualIMLPortNames = [
+        "conceptualimlport",
+        "conceptual_iml_port", 
+        "conceptualport",
+        "conceptual_port",
+        "imlconceptualport",
+        "iml_conceptual_port"
+    ]
+    
+    if (conceptualIMLPortNames.any { stereotypeName?.contains(it) }) {
+        return true
+    }
+    
+    // Method 2: Check if stereotype name contains both "conceptual" and "port" and "iml"
+    if (stereotypeName?.contains("conceptual") && 
+        stereotypeName?.contains("port") && 
+        stereotypeName?.contains("iml")) {
+        return true
+    }
+    
+    // Method 3: Check qualified name for conceptual IML port indicators
+    if (qualifiedName?.contains("conceptual") && 
+        qualifiedName?.contains("port") && 
+        qualifiedName?.contains("iml")) {
+        return true
+    }
+    
+    // Method 4: Check if stereotype is defined in Conceptual IML profile/package
+    def stereotypeProfile = getStereotypeProfile(stereotype)
+    if (stereotypeProfile != null) {
+        def profileName = stereotypeProfile.getName()?.toLowerCase()
+        if (profileName?.contains("conceptual") && 
+            profileName?.contains("iml") && 
+            stereotypeName?.contains("port")) {
+            return true
+        }
+    }
+    
+    // Method 5: Check stereotype metaclass - should extend Port
+    def metaclasses = stereotype.getAllExtendedMetaclass()
+    def extendsPort = metaclasses.any { it.getName() == "Port" }
+    
+    if (extendsPort) {
+        // Check if this port stereotype is in conceptual IML context
+        if (isStereotypeInConceptualIMLContext(stereotype)) {
+            return true
+        }
+    }
+    
+    return false
+}
+
+/**
+ * Helper method to get the profile that contains a stereotype
+ */
+def getStereotypeProfile(stereotype) {
+    def owner = stereotype.getOwner()
+    while (owner != null) {
+        if (owner instanceof Profile) {
+            return owner
+        }
+        owner = owner.getOwner()
+    }
+    return null
+}
+
+/**
+ * Helper method to check if a stereotype is in a Conceptual IML context
+ */
+def isStereotypeInConceptualIMLContext(stereotype) {
+    def owner = stereotype.getOwner()
+    while (owner != null) {
+        def ownerName = owner.getName()?.toLowerCase()
+        if (ownerName?.contains("conceptual") && ownerName?.contains("iml")) {
+            return true
+        }
+        if (ownerName?.contains("conceptualiml") || 
+            ownerName?.contains("imlconceptual")) {
+            return true
+        }
+        owner = owner.getOwner()
+    }
+    return false
+}
+
+/**
+ * Helper method to get current stereotypes applied to a port (for error reporting)
+ */
+def getCurrentStereotypes(port) {
+    def stereotypes = []
+    
+    if (port != null) {
+        def appliedStereotypes = port.getAppliedStereotype()
+        appliedStereotypes.each { stereotype ->
+            stereotypes.add(stereotype)
+        }
+    }
+    
+    return stereotypes
+}
+
+/**
+ * Helper method to suggest appropriate Conceptual IML Port stereotypes
+ */
+def suggestConceptualIMLPortStereotypes() {
+    return [
+        "ConceptualIMLPort",
+        "Conceptual_IML_Port", 
+        "ConceptualPort (in IML profile)",
+        "IMLConceptualPort",
+        "IML_Conceptual_Port"
+    ]
+}
+
+/**
+ * Additional validation to check stereotype definition quality
+ */
+def validateStereotypeDefinition(stereotype) {
+    def issues = []
+    
+    // Check if stereotype properly extends Port metaclass
+    def metaclasses = stereotype.getAllExtendedMetaclass()
+    def extendsPort = metaclasses.any { it.getName() == "Port" }
+    
+    if (!extendsPort) {
+        issues.add("Stereotype should extend Port metaclass")
+    }
+    
+    // Check if stereotype is in appropriate profile
+    def profile = getStereotypeProfile(stereotype)
+    if (profile == null) {
+        issues.add("Stereotype should be defined within a profile")
+    } else {
+        def profileName = profile.getName()?.toLowerCase()
+        if (!profileName?.contains("iml") && !profileName?.contains("conceptual")) {
+            issues.add("Stereotype should be in an IML or Conceptual profile")
+        }
+    }
+    
+    return issues
+}
