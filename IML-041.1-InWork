@@ -1,0 +1,362 @@
+/**
+ * Validation Rule: IML Pub-Sub Interaction Dataset Typing Constraint
+ * IML-041.1
+ * Requirement: When a Conceptual Interfaces Modeling Library (IML) Pub-Sub Interaction 
+ * is owned by an IML Interface, the IML Pub-Sub Interaction shall be typed by exactly 
+ * one (1) Conceptual IML Dataset.
+ */
+
+import com.nomagic.magicdraw.core.Application
+import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.*
+import com.nomagic.uml2.ext.magicdraw.classes.mdinterfaces.*
+import com.nomagic.uml2.ext.magicdraw.commonbehaviors.mdcommunications.*
+import com.nomagic.uml2.ext.magicdraw.compositestructures.mdports.*
+
+// Get the element being validated
+Element element = validationTarget
+
+// Check if this is an IML Pub-Sub Interaction owned by an IML Interface
+if (!isIMLPubSubInteractionInIMLInterface(element)) {
+    return // Not applicable to this element
+}
+
+// Get the interaction (Operation, Reception, or similar behavioral feature)
+BehavioralFeature interaction = (BehavioralFeature) element
+List<Parameter> parameters = interaction.getOwnedParameter()
+
+// Count parameters that are typed by Conceptual IML Datasets
+List<Parameter> datasetTypedParams = []
+List<Parameter> nonDatasetTypedParams = []
+List<Parameter> untypedParams = []
+
+for (Parameter param : parameters) {
+    // Skip return parameters for operations
+    if (param.getDirection() == ParameterDirectionKind.RETURN) {
+        continue
+    }
+    
+    Type paramType = param.getType()
+    if (paramType == null) {
+        untypedParams.add(param)
+    } else if (isConceptualIMLDataset(paramType)) {
+        datasetTypedParams.add(param)
+    } else {
+        nonDatasetTypedParams.add(param)
+    }
+}
+
+// Validate exactly one Conceptual IML Dataset parameter
+List<String> violations = []
+String interactionName = interaction.getName()
+String interfaceName = interaction.getOwner().getName()
+
+if (datasetTypedParams.size() == 0) {
+    violations.add("IML Pub-Sub Interaction '${interactionName}' in IML Interface '${interfaceName}' has no parameters typed by Conceptual IML Datasets (required: exactly 1)")
+} else if (datasetTypedParams.size() > 1) {
+    violations.add("IML Pub-Sub Interaction '${interactionName}' in IML Interface '${interfaceName}' has ${datasetTypedParams.size()} parameters typed by Conceptual IML Datasets (required: exactly 1)")
+}
+
+// Report untyped parameters
+for (Parameter param : untypedParams) {
+    violations.add("IML Pub-Sub Interaction '${interactionName}' in IML Interface '${interfaceName}' has untyped parameter '${param.getName()}'")
+}
+
+// Report incorrectly typed parameters
+for (Parameter param : nonDatasetTypedParams) {
+    violations.add("IML Pub-Sub Interaction '${interactionName}' in IML Interface '${interfaceName}' has parameter '${param.getName()}' typed by '${param.getType().getName()}' which is not a Conceptual IML Dataset")
+}
+
+// Report violations
+if (!violations.isEmpty()) {
+    for (String violation : violations) {
+        Application.getInstance().getGUILog().log(violation)
+    }
+    return false
+}
+
+// Validation passed
+return true
+
+/**
+ * Determines if the element is an IML Pub-Sub Interaction owned by an IML Interface
+ */
+boolean isIMLPubSubInteractionInIMLInterface(Element element) {
+    // Must be a behavioral feature (Operation, Reception, etc.)
+    if (!(element instanceof BehavioralFeature)) {
+        return false
+    }
+    
+    BehavioralFeature feature = (BehavioralFeature) element
+    
+    // Must be an IML Pub-Sub Interaction
+    if (!isIMLPubSubInteraction(feature)) {
+        return false
+    }
+    
+    // Must be owned by an IML Interface
+    Element owner = feature.getOwner()
+    if (!isIMLInterface(owner)) {
+        return false
+    }
+    
+    return true
+}
+
+/**
+ * Check if element is an IML Pub-Sub Interaction
+ */
+boolean isIMLPubSubInteraction(BehavioralFeature feature) {
+    // Method 1: Check for IML Pub-Sub stereotypes
+    if (hasStereotype(feature, "IML Pub-Sub Interaction") ||
+        hasStereotype(feature, "IMLPubSubInteraction") ||
+        hasStereotype(feature, "Pub-Sub Interaction") ||
+        hasStereotype(feature, "PubSubInteraction") ||
+        hasStereotype(feature, "IML PubSub") ||
+        hasStereotype(feature, "Publish-Subscribe") ||
+        hasStereotype(feature, "PublishSubscribe")) {
+        return true
+    }
+    
+    // Method 2: Check for publish/subscribe naming patterns
+    String name = feature.getName()
+    if (name != null) {
+        String lowerName = name.toLowerCase()
+        if (lowerName.contains("publish") || lowerName.contains("subscribe") ||
+            lowerName.contains("pub") && lowerName.contains("sub") ||
+            lowerName.startsWith("pub_") || lowerName.startsWith("sub_") ||
+            lowerName.endsWith("_pub") || lowerName.endsWith("_sub")) {
+            return isInIMLContext(feature)
+        }
+    }
+    
+    // Method 3: Check if it's a Reception (common for pub-sub patterns)
+    if (feature instanceof Reception && isInIMLContext(feature)) {
+        return true
+    }
+    
+    // Method 4: Check for IML Interaction stereotype with pub-sub characteristics
+    if (hasStereotype(feature, "IML Interaction") || hasStereotype(feature, "IMLInteraction")) {
+        return hasPubSubCharacteristics(feature)
+    }
+    
+    return false
+}
+
+/**
+ * Determines if the element is an IML Interface
+ */
+boolean isIMLInterface(Element element) {
+    // Check if element is an Interface
+    if (!(element instanceof Interface)) {
+        return false
+    }
+    
+    // Method 1: Check for IML Interface stereotypes
+    if (hasStereotype(element, "IML Interface") || 
+        hasStereotype(element, "IMLInterface") ||
+        hasStereotype(element, "IML Conceptual Interface") ||
+        hasStereotype(element, "IMLConceptualInterface") ||
+        hasStereotype(element, "Conceptual Interface")) {
+        return true
+    }
+    
+    // Method 2: Check if element is in IML namespace
+    if (isInIMLNamespace(element)) {
+        return true
+    }
+    
+    // Method 3: Check for naming convention
+    String name = element.getName()
+    if (name != null && (name.startsWith("IML_") || 
+                        name.contains("Interface") && isInIMLContext(element))) {
+        return true
+    }
+    
+    return false
+}
+
+/**
+ * Determines if the type is a Conceptual IML Dataset
+ */
+boolean isConceptualIMLDataset(Type type) {
+    // Method 1: Check for Conceptual IML Dataset stereotypes
+    if (hasStereotype(type, "Conceptual IML Dataset") ||
+        hasStereotype(type, "ConceptualIMLDataset") ||
+        hasStereotype(type, "IML Conceptual Dataset") ||
+        hasStereotype(type, "IMLConceptualDataset") ||
+        hasStereotype(type, "Conceptual Dataset")) {
+        return true
+    }
+    
+    // Method 2: Check for IML Dataset with Conceptual characteristics
+    if (isIMLDataset(type) && isConceptualLevel(type)) {
+        return true
+    }
+    
+    return false
+}
+
+/**
+ * Determines if the type is an IML Dataset (base check)
+ */
+boolean isIMLDataset(Type type) {
+    // Check for IML Dataset stereotypes
+    if (hasStereotype(type, "IML Dataset") ||
+        hasStereotype(type, "IMLDataset") ||
+        hasStereotype(type, "Dataset") ||
+        hasStereotype(type, "IML Data Set") ||
+        hasStereotype(type, "DataSet")) {
+        return true
+    }
+    
+    // Check if type is in IML Dataset namespace
+    if (isInIMLDatasetNamespace(type)) {
+        return true
+    }
+    
+    // Check for IML Dataset naming conventions
+    String name = type.getName()
+    if (name != null) {
+        if (name.startsWith("IML_") && name.toLowerCase().contains("dataset")) {
+            return true
+        }
+        if ((name.endsWith("Dataset") || name.endsWith("DataSet")) && isInIMLContext(type)) {
+            return true
+        }
+    }
+    
+    return false
+}
+
+/**
+ * Check if type is at conceptual level
+ */
+boolean isConceptualLevel(Type type) {
+    // Method 1: Check for conceptual stereotypes
+    if (hasStereotype(type, "Conceptual") ||
+        hasStereotype(type, "ConceptualLevel") ||
+        hasStereotype(type, "Abstract") ||
+        hasStereotype(type, "HighLevel")) {
+        return true
+    }
+    
+    // Method 2: Check naming patterns
+    String name = type.getName()
+    if (name != null && name.toLowerCase().contains("conceptual")) {
+        return true
+    }
+    
+    // Method 3: Check if in conceptual namespace
+    if (isInConceptualNamespace(type)) {
+        return true
+    }
+    
+    return false
+}
+
+/**
+ * Check if feature has pub-sub characteristics
+ */
+boolean hasPubSubCharacteristics(BehavioralFeature feature) {
+    // Check for asynchronous communication patterns
+    if (feature instanceof Reception) {
+        return true
+    }
+    
+    // Check for signal-based operations
+    if (feature instanceof Operation) {
+        Operation op = (Operation) feature
+        // Check if operation has void return type (typical for pub-sub)
+        if (op.getType() == null || op.getType().getName() == "void") {
+            return true
+        }
+    }
+    
+    // Check for event-related tags or properties
+    return feature.getTaggedValue().any { 
+        String tagName = it.getTagDefinition()?.getName()?.toLowerCase()
+        return tagName?.contains("event") || 
+               tagName?.contains("signal") ||
+               tagName?.contains("message") ||
+               tagName?.contains("async")
+    }
+}
+
+/**
+ * Helper method to check if element has a specific stereotype
+ */
+boolean hasStereotype(Element element, String stereotypeName) {
+    return element.getAppliedStereotype().any { 
+        it.getName().equals(stereotypeName) || 
+        it.getName().toLowerCase().replace(" ", "").replace("-", "").equals(
+            stereotypeName.toLowerCase().replace(" ", "").replace("-", ""))
+    }
+}
+
+/**
+ * Helper method to check if element is in IML namespace
+ */
+boolean isInIMLNamespace(Element element) {
+    Element owner = element.getOwner()
+    while (owner != null) {
+        String name = owner.getName()
+        if (name != null && (name.contains("IML") || 
+                           name.contains("Interfaces Modeling Library") ||
+                           name.contains("Interface Model"))) {
+            return true
+        }
+        owner = owner.getOwner()
+    }
+    return false
+}
+
+/**
+ * Helper method to check if element is in IML Dataset namespace
+ */
+boolean isInIMLDatasetNamespace(Element element) {
+    Element owner = element.getOwner()
+    while (owner != null) {
+        String name = owner.getName()
+        if (name != null && (name.contains("Dataset") || 
+                           name.contains("DataSet") ||
+                           name.contains("Data Model") ||
+                           (name.contains("IML") && name.toLowerCase().contains("data")))) {
+            return true
+        }
+        owner = owner.getOwner()
+    }
+    return false
+}
+
+/**
+ * Helper method to check if element is in conceptual namespace
+ */
+boolean isInConceptualNamespace(Element element) {
+    Element owner = element.getOwner()
+    while (owner != null) {
+        String name = owner.getName()
+        if (name != null && name.toLowerCase().contains("conceptual")) {
+            return true
+        }
+        owner = owner.getOwner()
+    }
+    return false
+}
+
+/**
+ * Helper method to check if element is in IML context
+ */
+boolean isInIMLContext(Element element) {
+    Element owner = element.getOwner()
+    while (owner != null) {
+        String name = owner.getName()
+        if (name != null && name.contains("IML")) {
+            return true
+        }
+        if (hasStereotype(owner, "IML Package") || hasStereotype(owner, "IMLPackage")) {
+            return true
+        }
+        owner = owner.getOwner()
+    }
+    return false
+}
