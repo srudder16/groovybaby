@@ -1,0 +1,301 @@
+/**
+ * Validation Rule: IML Service Ports and Interfaces Check
+ * IML-006.1
+ * Requirement: When a Conceptual Interfaces Modeling Library (IML) Service 
+ * has interactions with other IML Services, it shall own IML Ports typed by IML Interfaces.
+ */
+
+// Import necessary Cameo/MagicDraw classes
+import com.nomagic.magicdraw.core.Application
+import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.*
+import com.nomagic.uml2.ext.magicdraw.compositestructures.mdports.*
+import com.nomagic.uml2.ext.magicdraw.classes.mdinterfaces.*
+import com.nomagic.uml2.ext.magicdraw.interactions.mdbasicinteractions.*
+import com.nomagic.uml2.ext.magicdraw.auxiliaryconstructs.mdmodels.*
+
+// Get the current element being validated
+def currentElement = _context
+
+// Check if the current element is a Conceptual IML Service element
+if (!isConceptualIMLServiceElement(currentElement)) {
+    return // Rule doesn't apply to non-Conceptual IML Service elements
+}
+
+// Find all interactions this IML Service has with other IML Services
+def interactingIMLServices = findInteractingIMLServices(currentElement)
+
+// If there are interactions with other IML Services, validate port requirements
+if (!interactingIMLServices.isEmpty()) {
+    
+    // Get all owned ports of the current element
+    def ownedPorts = getOwnedPorts(currentElement)
+    def imlPorts = ownedPorts.findAll { isIMLPort(it) }
+    
+    // Check if there are any IML Ports
+    if (imlPorts.isEmpty()) {
+        _validation.addError(currentElement,
+            "Conceptual IML Service '${currentElement.getName()}' has interactions with other IML Services but does not own any IML Ports. It must own IML Ports typed by IML Interfaces.")
+        return
+    }
+    
+    // Validate each IML Port is typed by an IML Interface
+    def violatingPorts = []
+    imlPorts.each { port ->
+        def portType = port.getType()
+        if (!isIMLInterface(portType)) {
+            violatingPorts.add(port)
+        }
+    }
+    
+    if (!violatingPorts.isEmpty()) {
+        def portNames = violatingPorts.collect { it.getName() }.join(", ")
+        _validation.addError(currentElement,
+            "Conceptual IML Service '${currentElement.getName()}' has IML Ports [${portNames}] that are not typed by IML Interfaces. All IML Ports must be typed by IML Interfaces when the service interacts with other IML Services.")
+    }
+    
+    // Additional check: Verify that interactions are actually facilitated through the IML Ports
+    validateInteractionsThroughPorts(currentElement, interactingIMLServices, imlPorts)
+}
+
+/**
+ * Helper method to determine if an element is a Conceptual IML Service element
+ */
+def isConceptualIMLServiceElement(element) {
+    return isIMLServiceElement(element) && isConceptualElement(element)
+}
+
+/**
+ * Helper method to determine if an element is an IML Service element
+ */
+def isIMLServiceElement(element) {
+    if (element == null) return false
+    
+    // Check for specific stereotype
+    def imlServiceStereotype = element.getAppliedStereotype("IMLService") ||
+                              element.getAppliedStereotype("IML_Service") ||
+                              element.getAppliedStereotype("InterfacesModelingLibrary::Service")
+    
+    if (imlServiceStereotype != null) {
+        return true
+    }
+    
+    // Check if element is in IML package/library
+    def owner = element.getOwner()
+    while (owner != null) {
+        if (owner.getName()?.contains("IML") || 
+            owner.getName()?.contains("Interfaces Modeling Library") ||
+            owner.getName()?.contains("InterfacesModelingLibrary")) {
+            return true
+        }
+        owner = owner.getOwner()
+    }
+    
+    // Check naming convention
+    def elementName = element.getName()
+    if (elementName?.contains("IML") || elementName?.endsWith("Service")) {
+        return true
+    }
+    
+    return false
+}
+
+/**
+ * Helper method to determine if an element is a Conceptual element
+ */
+def isConceptualElement(element) {
+    if (element == null) return false
+    
+    // Check for Conceptual stereotype
+    def conceptualStereotype = element.getAppliedStereotype("Conceptual") ||
+                              element.getAppliedStereotype("ConceptualElement")
+    
+    if (conceptualStereotype != null) {
+        return true
+    }
+    
+    // Check tagged values
+    def taggedValues = element.getTaggedValue()
+    for (taggedValue in taggedValues) {
+        if (taggedValue.getTagDefinition().getName() == "ElementType" &&
+            taggedValue.getValue()?.toString()?.equalsIgnoreCase("Conceptual")) {
+            return true
+        }
+    }
+    
+    // Check if element is in Conceptual package
+    def owner = element.getOwner()
+    while (owner != null) {
+        if (owner.getName()?.contains("Conceptual")) {
+            return true
+        }
+        owner = owner.getOwner()
+    }
+    
+    return false
+}
+
+/**
+ * Helper method to find all IML Services that this element interacts with
+ */
+def findInteractingIMLServices(element) {
+    def interactingServices = []
+    
+    // Method 1: Check connectors and their connected elements
+    def connectors = element.get_connectorOfConnectableElement()
+    connectors.each { connector ->
+        connector.getEnd().each { connectorEnd ->
+            def connectedElement = connectorEnd.getRole()?.getType()
+            if (connectedElement != element && isIMLServiceElement(connectedElement)) {
+                if (!interactingServices.contains(connectedElement)) {
+                    interactingServices.add(connectedElement)
+                }
+            }
+        }
+    }
+    
+    // Method 2: Check associations
+    def associations = element.get_associationOfType()
+    associations.each { association ->
+        association.getMemberEnd().each { end ->
+            def connectedElement = end.getType()
+            if (connectedElement != element && isIMLServiceElement(connectedElement)) {
+                if (!interactingServices.contains(connectedElement)) {
+                    interactingServices.add(connectedElement)
+                }
+            }
+        }
+    }
+    
+    // Method 3: Check sequence diagram interactions (if applicable)
+    // This would require additional logic based on your interaction modeling approach
+    
+    return interactingServices
+}
+
+/**
+ * Helper method to get all owned ports of an element
+ */
+def getOwnedPorts(element) {
+    def ports = []
+    
+    // Get owned ports directly
+    def ownedElements = element.getOwnedElement()
+    ownedElements.each { ownedElement ->
+        if (ownedElement instanceof Port) {
+            ports.add(ownedElement)
+        }
+    }
+    
+    // If element is a component, also check component's ports
+    if (element instanceof com.nomagic.uml2.ext.magicdraw.components.mdbasiccomponents.Component) {
+        def componentPorts = element.getOwnedPort()
+        if (componentPorts != null) {
+            ports.addAll(componentPorts)
+        }
+    }
+    
+    return ports
+}
+
+/**
+ * Helper method to determine if a port is an IML Port
+ */
+def isIMLPort(port) {
+    if (port == null) return false
+    
+    // Check for IML Port stereotype
+    def imlPortStereotype = port.getAppliedStereotype("IMLPort") ||
+                           port.getAppliedStereotype("IML_Port") ||
+                           port.getAppliedStereotype("InterfacesModelingLibrary::Port")
+    
+    if (imlPortStereotype != null) {
+        return true
+    }
+    
+    // Check naming convention
+    def portName = port.getName()
+    if (portName?.contains("IML") || portName?.startsWith("iml")) {
+        return true
+    }
+    
+    // Check if port type is an IML Interface (ports typed by IML interfaces are likely IML ports)
+    def portType = port.getType()
+    if (isIMLInterface(portType)) {
+        return true
+    }
+    
+    return false
+}
+
+/**
+ * Helper method to determine if an interface is an IML Interface
+ */
+def isIMLInterface(interfaceElement) {
+    if (interfaceElement == null) return false
+    
+    // Must be an actual Interface
+    if (!(interfaceElement instanceof Interface)) {
+        return false
+    }
+    
+    // Check for IML Interface stereotype
+    def imlInterfaceStereotype = interfaceElement.getAppliedStereotype("IMLInterface") ||
+                                interfaceElement.getAppliedStereotype("IML_Interface") ||
+                                interfaceElement.getAppliedStereotype("InterfacesModelingLibrary::Interface")
+    
+    if (imlInterfaceStereotype != null) {
+        return true
+    }
+    
+    // Check if interface is in IML package
+    def owner = interfaceElement.getOwner()
+    while (owner != null) {
+        if (owner.getName()?.contains("IML") || 
+            owner.getName()?.contains("Interfaces Modeling Library") ||
+            owner.getName()?.contains("InterfacesModelingLibrary")) {
+            return true
+        }
+        owner = owner.getOwner()
+    }
+    
+    // Check naming convention
+    def interfaceName = interfaceElement.getName()
+    if (interfaceName?.contains("IML") || interfaceName?.startsWith("I") && interfaceName?.contains("Interface")) {
+        return true
+    }
+    
+    return false
+}
+
+/**
+ * Helper method to validate that interactions are actually facilitated through IML Ports
+ * This is an additional validation to ensure architectural consistency
+ */
+def validateInteractionsThroughPorts(element, interactingServices, imlPorts) {
+    // This validation checks if the interactions are properly routed through ports
+    // Implementation depends on your specific modeling approach
+    
+    def connectors = element.get_connectorOfConnectableElement()
+    def connectedThroughPorts = []
+    
+    connectors.each { connector ->
+        connector.getEnd().each { connectorEnd ->
+            def role = connectorEnd.getRole()
+            if (role instanceof Port && imlPorts.contains(role)) {
+                def connectedElement = connectorEnd.getPartWithPort()?.getType() ?: 
+                                     connector.getEnd().find { it != connectorEnd }?.getRole()?.getType()
+                if (connectedElement && interactingServices.contains(connectedElement)) {
+                    connectedThroughPorts.add(connectedElement)
+                }
+            }
+        }
+    }
+    
+    // Check if all interacting services are connected through IML ports
+    def notConnectedThroughPorts = interactingServices.findAll { !connectedThroughPorts.contains(it) }
+    if (!notConnectedThroughPorts.isEmpty()) {
+        def serviceNames = notConnectedThroughPorts.collect { it.getName() }.join(", ")
+        _validation.addWarning(element,
+            "Conceptual IML Service '${element.getName()}' may have interactions with IML Services [${serviceNames}] that are not properly routed through IML Ports. Consider ensuring all interactions use IML Ports.")
+    }
+}

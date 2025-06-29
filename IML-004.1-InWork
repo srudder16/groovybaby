@@ -1,0 +1,151 @@
+/**
+ * Validation Rule: IML Service Composition Conceptual Element Check
+ * IML-004.1
+ * Requirement: When a Conceptual Interfaces Modeling Library (IML) Service element 
+ * has a composition relationship with another IML Service element, both IML Service 
+ * elements shall be Conceptual elements.
+ */
+
+// Import necessary Cameo/MagicDraw classes
+import com.nomagic.magicdraw.core.Application
+import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.*
+import com.nomagic.uml2.ext.magicdraw.compositestructures.mdports.*
+import com.nomagic.uml2.ext.magicdraw.classes.mdassociationclasses.*
+import com.nomagic.uml2.ext.magicdraw.auxiliaryconstructs.mdmodels.*
+
+// Get the current element being validated
+def currentElement = _context
+
+// Check if the current element is an IML Service element
+if (!isIMLServiceElement(currentElement)) {
+    return // Rule doesn't apply to non-IML Service elements
+}
+
+// Find all composition relationships involving this element
+def compositionRelationships = findCompositionRelationships(currentElement)
+
+// Validate each composition relationship
+compositionRelationships.each { composition ->
+    def memberEnds = composition.getMemberEnd()
+    
+    memberEnds.each { end ->
+        def connectedElement = end.getType()
+        
+        // Skip if connected element is the same as current element
+        if (connectedElement == currentElement) {
+            return
+        }
+        
+        // Check if the connected element is also an IML Service element
+        if (isIMLServiceElement(connectedElement)) {
+            // Both elements are IML Service elements in a composition relationship
+            // Verify both are Conceptual elements
+            
+            if (!isConceptualElement(currentElement)) {
+                _validation.addError(currentElement, 
+                    "IML Service element '${currentElement.getName()}' must be a Conceptual element when participating in composition with another IML Service element '${connectedElement.getName()}'")
+            }
+            
+            if (!isConceptualElement(connectedElement)) {
+                _validation.addError(connectedElement,
+                    "IML Service element '${connectedElement.getName()}' must be a Conceptual element when participating in composition with another IML Service element '${currentElement.getName()}'")
+            }
+        }
+    }
+}
+
+/**
+ * Helper method to determine if an element is an IML Service element
+ * This method should be customized based on how IML Service elements are identified in your model
+ * Common approaches: stereotype, package location, naming convention, or tagged values
+ */
+def isIMLServiceElement(element) {
+    if (element == null) return false
+    
+    // Option 1: Check for specific stereotype (adjust stereotype name as needed)
+    def imlServiceStereotype = element.getAppliedStereotype("IMLService") ||
+                              element.getAppliedStereotype("IML_Service") ||
+                              element.getAppliedStereotype("InterfacesModelingLibrary::Service")
+    
+    if (imlServiceStereotype != null) {
+        return true
+    }
+    
+    // Option 2: Check if element is in IML package/library (adjust package name as needed)
+    def owner = element.getOwner()
+    while (owner != null) {
+        if (owner.getName()?.contains("IML") || 
+            owner.getName()?.contains("Interfaces Modeling Library") ||
+            owner.getName()?.contains("InterfacesModelingLibrary")) {
+            return true
+        }
+        owner = owner.getOwner()
+    }
+    
+    // Option 3: Check naming convention (adjust pattern as needed)
+    def elementName = element.getName()
+    if (elementName?.contains("IML") || elementName?.endsWith("Service")) {
+        return true
+    }
+    
+    return false
+}
+
+/**
+ * Helper method to determine if an element is a Conceptual element
+ * This method should be customized based on how Conceptual elements are identified in your model
+ */
+def isConceptualElement(element) {
+    if (element == null) return false
+    
+    // Option 1: Check for Conceptual stereotype
+    def conceptualStereotype = element.getAppliedStereotype("Conceptual") ||
+                              element.getAppliedStereotype("ConceptualElement")
+    
+    if (conceptualStereotype != null) {
+        return true
+    }
+    
+    // Option 2: Check tagged values
+    def taggedValues = element.getTaggedValue()
+    for (taggedValue in taggedValues) {
+        if (taggedValue.getTagDefinition().getName() == "ElementType" &&
+            taggedValue.getValue()?.toString()?.equalsIgnoreCase("Conceptual")) {
+            return true
+        }
+    }
+    
+    // Option 3: Check if element is in Conceptual package
+    def owner = element.getOwner()
+    while (owner != null) {
+        if (owner.getName()?.contains("Conceptual")) {
+            return true
+        }
+        owner = owner.getOwner()
+    }
+    
+    return false
+}
+
+/**
+ * Helper method to find all composition relationships for an element
+ */
+def findCompositionRelationships(element) {
+    def compositions = []
+    
+    // Get all associations where this element participates
+    def associations = element.get_associationOfType()
+    
+    associations.each { association ->
+        // Check if this is a composition relationship
+        def memberEnds = association.getMemberEnd()
+        
+        memberEnds.each { end ->
+            if (end.getAggregation() == AggregationKindEnum.COMPOSITE) {
+                compositions.add(association)
+            }
+        }
+    }
+    
+    return compositions
+}
