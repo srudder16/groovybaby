@@ -4,4 +4,4 @@ These scripts are meant to be modified to verify rules of construction for GCIA,
 
 By importing profiles that contain validation rules, a validation suite can be constructed and applied to a Cameo project. 
 
-These suites with automatically verify compliance with rules of construction.
+These suites with automatically verify compliance with rules of construction for the aforementioned architecture style guides.
