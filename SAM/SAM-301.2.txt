@@ -1,0 +1,11 @@
+-- SAM-301.2 - All Interfaces Modeling Library (IML) elements used in the Logical System Architecture Model (SAM) shall be Logical model elements.
+
+  self.allOwnedElements()
+    ->forAll(e |
+      -- Each IML element must be a Logical model element
+      e.getAppliedStereotype('IML Logical Element') <> null or
+      e.getAppliedStereotype('IML Logical Interface') <> null or
+      e.getAppliedStereotype('IML Logical Port') <> null or
+      e.getAppliedStereotype('IML Logical Req-Res Interaction') <> null or
+      e.getAppliedStereotype('IML Logical Service') <> null
+    )

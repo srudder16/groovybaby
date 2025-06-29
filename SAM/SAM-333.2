@@ -1,0 +1,25 @@
+--SAM-333.2 - Within Logical SAM, all IML Dataset Entity Properties at end of IML Semantic Link shall be Logical level
+  self.allOwnedElements()
+  ->select(e | 
+      -- Filter for Logical IML Dataview Mapping elements
+      e.getAppliedStereotype('IML Dataview Mapping') <> null
+    )
+    ->selectByKind(Association)
+    ->select(assoc |
+      -- Filter for IML Semantic Links
+      assoc.getAppliedStereotype('IML Semantic Link') <> null
+    )
+    ->forAll('IML Semantic Link'|
+      -- For each semantic link, check all member ends that are IML Dataset Entity Properties
+      semanticLink.memberEnd
+        ->select(end |
+          -- Filter for IML Dataset Entity Properties
+		  end.getAppliedStereotype('IML Logical Property') <> null or
+          (end.type.getAppliedStereotype('IML Logical Dataset') <> null and end.oclIsKindOf(Property))
+        )
+        ->forAll(datasetProperty |
+          -- Each IML Dataset Entity Property must be from Logical level of abstraction
+          datasetProperty.getAppliedStereotype('IML Logical Dataset') <> null
+          datasetProperty.type.getAppliedStereotype('IML Logical Dataset') <> null
+        )
+    )

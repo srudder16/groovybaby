@@ -1,0 +1,11 @@
+-- SAM-301.1 - All Interfaces Modeling Library (IML) elements used in the Conceptual System Architecture Model (SAM) shall be Conceptual model elements.
+
+"  self.allOwnedElements()
+    ->forAll(e |
+      -- Each IML element must be a Conceptual model element
+      e.getAppliedStereotype('IML Conceptual Element') <> null or
+      e.getAppliedStereotype('IML Conceptual Interface') <> null or
+      e.getAppliedStereotype('IML Conceptual Port') <> null or
+      e.getAppliedStereotype('IML Conceptual Req-Res Interaction') <> null or
+      e.getAppliedStereotype('IML Conceptual Service') <> null
+    )"
