@@ -1,0 +1,388 @@
+/**
+ * Validation Rule: IML Dataset Conceptual Stereotype Check
+ * IML-012.1
+ * Requirement: When a Conceptual Interfaces Modeling Library (IML) Service 
+ * has an allocated Activity that describes interface related behavior, each 
+ * IML Dataset used in the Activity shall have exactly one (1) Conceptual stereotype.
+ */
+
+// Import necessary Cameo/MagicDraw classes
+import com.nomagic.magicdraw.core.Application
+import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.*
+import com.nomagic.uml2.ext.magicdraw.activities.mdbasicactivities.*
+import com.nomagic.uml2.ext.magicdraw.activities.mdintermediateactivities.*
+import com.nomagic.uml2.ext.magicdraw.activities.mdcompleteactivities.*
+import com.nomagic.uml2.ext.magicdraw.auxiliaryconstructs.mdmodels.*
+import com.nomagic.uml2.ext.magicdraw.mdprofiles.*
+
+// Get the current element being validated
+def currentElement = _context
+
+// Check if the current element is a Conceptual IML Service element
+if (!isConceptualIMLServiceElement(currentElement)) {
+    return // Rule doesn't apply to non-Conceptual IML Service elements
+}
+
+// Find all allocated Activities that describe interface related behavior
+def interfaceRelatedActivities = findInterfaceRelatedActivities(currentElement)
+
+// Validate IML Datasets in each interface-related activity
+interfaceRelatedActivities.each { activity ->
+    def imlDatasets = findIMLDatasetsInActivity(activity)
+    
+    imlDatasets.each { dataset ->
+        def conceptualStereotypes = getConceptualStereotypes(dataset)
+        
+        if (conceptualStereotypes.size() == 0) {
+            _validation.addError(dataset,
+                "IML Dataset '${dataset.getName()}' used in interface-related Activity '${activity.getName()}' (allocated to Conceptual IML Service '${currentElement.getName()}') does not have any Conceptual stereotype. It must have exactly one Conceptual stereotype.")
+        } else if (conceptualStereotypes.size() > 1) {
+            def stereotypeNames = conceptualStereotypes.collect { it.getName() }.join(", ")
+            _validation.addError(dataset,
+                "IML Dataset '${dataset.getName()}' used in interface-related Activity '${activity.getName()}' (allocated to Conceptual IML Service '${currentElement.getName()}') has multiple Conceptual stereotypes [${stereotypeNames}]. It must have exactly one Conceptual stereotype.")
+        }
+        // If exactly one conceptual stereotype, validation passes (no action needed)
+    }
+}
+
+/**
+ * Helper method to determine if an element is a Conceptual IML Service element
+ */
+def isConceptualIMLServiceElement(element) {
+    return isIMLServiceElement(element) && isConceptualElement(element)
+}
+
+/**
+ * Helper method to determine if an element is an IML Service element
+ */
+def isIMLServiceElement(element) {
+    if (element == null) return false
+    
+    // Check for specific stereotype
+    def imlServiceStereotype = element.getAppliedStereotype("IMLService") ||
+                              element.getAppliedStereotype("IML_Service") ||
+                              element.getAppliedStereotype("InterfacesModelingLibrary::Service")
+    
+    if (imlServiceStereotype != null) {
+        return true
+    }
+    
+    // Check if element is in IML package/library
+    def owner = element.getOwner()
+    while (owner != null) {
+        if (owner.getName()?.contains("IML") || 
+            owner.getName()?.contains("Interfaces Modeling Library") ||
+            owner.getName()?.contains("InterfacesModelingLibrary")) {
+            return true
+        }
+        owner = owner.getOwner()
+    }
+    
+    // Check naming convention
+    def elementName = element.getName()
+    if (elementName?.contains("IML") || elementName?.endsWith("Service")) {
+        return true
+    }
+    
+    return false
+}
+
+/**
+ * Helper method to determine if an element is a Conceptual element
+ */
+def isConceptualElement(element) {
+    if (element == null) return false
+    
+    // Check for Conceptual stereotype
+    def conceptualStereotype = element.getAppliedStereotype("Conceptual") ||
+                              element.getAppliedStereotype("ConceptualElement")
+    
+    if (conceptualStereotype != null) {
+        return true
+    }
+    
+    // Check tagged values
+    def taggedValues = element.getTaggedValue()
+    for (taggedValue in taggedValues) {
+        if (taggedValue.getTagDefinition().getName() == "ElementType" &&
+            taggedValue.getValue()?.toString()?.equalsIgnoreCase("Conceptual")) {
+            return true
+        }
+    }
+    
+    // Check if element is in Conceptual package
+    def owner = element.getOwner()
+    while (owner != null) {
+        if (owner.getName()?.contains("Conceptual")) {
+            return true
+        }
+        owner = owner.getOwner()
+    }
+    
+    return false
+}
+
+/**
+ * Helper method to find all allocated Activities that describe interface related behavior
+ */
+def findInterfaceRelatedActivities(element) {
+    def interfaceActivities = []
+    
+    // Method 1: Check for allocation relationships (Allocate stereotype)
+    def allocationRelationships = findAllocationRelationships(element)
+    
+    allocationRelationships.each { allocation ->
+        def allocatedElement = getAllocatedElement(allocation, element)
+        if (allocatedElement instanceof Activity && isInterfaceRelatedActivity(allocatedElement)) {
+            interfaceActivities.add(allocatedElement)
+        }
+    }
+    
+    // Method 2: Check for directly owned activities
+    def ownedElements = element.getOwnedElement()
+    ownedElements.each { ownedElement ->
+        if (ownedElement instanceof Activity && isInterfaceRelatedActivity(ownedElement)) {
+            interfaceActivities.add(ownedElement)
+        }
+    }
+    
+    // Method 3: Check for activities linked through tagged values or stereotypes
+    def taggedValues = element.getTaggedValue()
+    taggedValues.each { taggedValue ->
+        if (taggedValue.getTagDefinition().getName() == "allocatedActivity" ||
+            taggedValue.getTagDefinition().getName() == "behaviorActivity") {
+            def allocatedActivity = taggedValue.getValue()
+            if (allocatedActivity instanceof Activity && isInterfaceRelatedActivity(allocatedActivity)) {
+                interfaceActivities.add(allocatedActivity)
+            }
+        }
+    }
+    
+    return interfaceActivities
+}
+
+/**
+ * Helper method to find allocation relationships
+ */
+def findAllocationRelationships(element) {
+    def allocations = []
+    
+    // Look for dependencies with Allocate stereotype
+    def dependencies = element.get_dependencyOfClient()
+    dependencies.each { dependency ->
+        def allocateStereotype = dependency.getAppliedStereotype("Allocate") ||
+                                dependency.getAppliedStereotype("SysML::Allocate")
+        if (allocateStereotype != null) {
+            allocations.add(dependency)
+        }
+    }
+    
+    // Also check incoming dependencies
+    def incomingDependencies = element.get_dependencyOfSupplier()
+    incomingDependencies.each { dependency ->
+        def allocateStereotype = dependency.getAppliedStereotype("Allocate") ||
+                                dependency.getAppliedStereotype("SysML::Allocate")
+        if (allocateStereotype != null) {
+            allocations.add(dependency)
+        }
+    }
+    
+    return allocations
+}
+
+/**
+ * Helper method to get the allocated element from an allocation relationship
+ */
+def getAllocatedElement(allocation, sourceElement) {
+    // For dependencies, if sourceElement is client, return supplier; if supplier, return client
+    if (allocation.getClient().contains(sourceElement)) {
+        return allocation.getSupplier().find { it != sourceElement }
+    } else if (allocation.getSupplier().contains(sourceElement)) {
+        return allocation.getClient().find { it != sourceElement }
+    }
+    return null
+}
+
+/**
+ * Helper method to determine if an Activity describes interface related behavior
+ */
+def isInterfaceRelatedActivity(activity) {
+    if (activity == null) return false
+    
+    // Method 1: Check for interface-related stereotypes
+    def interfaceStereotypes = ["InterfaceBehavior", "Interface_Behavior", "IMLBehavior", "IML_Behavior"]
+    for (stereotypeName in interfaceStereotypes) {
+        if (activity.getAppliedStereotype(stereotypeName) != null) {
+            return true
+        }
+    }
+    
+    // Method 2: Check activity name for interface keywords
+    def activityName = activity.getName()?.toLowerCase()
+    if (activityName?.contains("interface") || 
+        activityName?.contains("iml") ||
+        activityName?.contains("communication") ||
+        activityName?.contains("interaction") ||
+        activityName?.contains("exchange")) {
+        return true
+    }
+    
+    // Method 3: Check for tagged values indicating interface behavior
+    def taggedValues = activity.getTaggedValue()
+    for (taggedValue in taggedValues) {
+        def tagName = taggedValue.getTagDefinition().getName()
+        def tagValue = taggedValue.getValue()?.toString()?.toLowerCase()
+        
+        if ((tagName == "behaviorType" && tagValue?.contains("interface")) ||
+            (tagName == "purpose" && tagValue?.contains("interface")) ||
+            (tagName == "description" && tagValue?.contains("interface"))) {
+            return true
+        }
+    }
+    
+    // Method 4: Check if activity contains interface-related actions or flows
+    def nodes = activity.getNode()
+    for (node in nodes) {
+        if (node.getName()?.toLowerCase()?.contains("interface") ||
+            node.getName()?.toLowerCase()?.contains("exchange") ||
+            node.getName()?.toLowerCase()?.contains("communicate")) {
+            return true
+        }
+    }
+    
+    return false
+}
+
+/**
+ * Helper method to find all IML Datasets used in an Activity
+ */
+def findIMLDatasetsInActivity(activity) {
+    def imlDatasets = []
+    
+    // Check activity nodes (actions, object nodes, etc.)
+    def nodes = activity.getNode()
+    nodes.each { node ->
+        // Check object nodes and their types
+        if (node instanceof ObjectNode) {
+            def nodeType = node.getType()
+            if (isIMLDataset(nodeType)) {
+                imlDatasets.add(nodeType)
+            }
+        }
+        
+        // Check action input/output pins
+        if (node instanceof Action) {
+            def inputPins = node.getInput()
+            inputPins.each { pin ->
+                def pinType = pin.getType()
+                if (isIMLDataset(pinType)) {
+                    imlDatasets.add(pinType)
+                }
+            }
+            
+            def outputPins = node.getOutput()
+            outputPins.each { pin ->
+                def pinType = pin.getType()
+                if (isIMLDataset(pinType)) {
+                    imlDatasets.add(pinType)
+                }
+            }
+        }
+    }
+    
+    // Check activity parameters
+    def parameters = activity.getOwnedParameter()
+    parameters.each { parameter ->
+        def parameterType = parameter.getType()
+        if (isIMLDataset(parameterType)) {
+            imlDatasets.add(parameterType)
+        }
+    }
+    
+    // Remove duplicates
+    return imlDatasets.unique()
+}
+
+/**
+ * Helper method to determine if an element is an IML Dataset
+ */
+def isIMLDataset(element) {
+    if (element == null) return false
+    
+    // Check for IML Dataset stereotype
+    def imlDatasetStereotype = element.getAppliedStereotype("IMLDataset") ||
+                              element.getAppliedStereotype("IML_Dataset") ||
+                              element.getAppliedStereotype("InterfacesModelingLibrary::Dataset")
+    
+    if (imlDatasetStereotype != null) {
+        return true
+    }
+    
+    // Check naming convention
+    def elementName = element.getName()
+    if (elementName?.contains("IML") && 
+        (elementName?.contains("Dataset") || elementName?.contains("Data"))) {
+        return true
+    }
+    
+    // Check if element is in IML package and appears to be a dataset
+    def owner = element.getOwner()
+    while (owner != null) {
+        if (owner.getName()?.contains("IML") || 
+            owner.getName()?.contains("Interfaces Modeling Library")) {
+            // Additional check for dataset-like characteristics
+            if (elementName?.contains("Data") || 
+                elementName?.endsWith("Set") ||
+                element instanceof DataType ||
+                element instanceof Class) {
+                return true
+            }
+        }
+        owner = owner.getOwner()
+    }
+    
+    return false
+}
+
+/**
+ * Helper method to get all Conceptual stereotypes applied to an element
+ */
+def getConceptualStereotypes(element) {
+    def conceptualStereotypes = []
+    
+    if (element == null) return conceptualStereotypes
+    
+    // Get all applied stereotypes
+    def appliedStereotypes = element.getAppliedStereotype()
+    
+    appliedStereotypes.each { stereotype ->
+        def stereotypeName = stereotype.getName()?.toLowerCase()
+        
+        // Check if stereotype name indicates it's conceptual
+        if (stereotypeName?.contains("conceptual")) {
+            conceptualStereotypes.add(stereotype)
+        }
+        
+        // Check stereotype's qualified name for conceptual indicators
+        def qualifiedName = stereotype.getQualifiedName()?.toLowerCase()
+        if (qualifiedName?.contains("conceptual")) {
+            if (!conceptualStereotypes.contains(stereotype)) {
+                conceptualStereotypes.add(stereotype)
+            }
+        }
+        
+        // Check if stereotype is defined in a Conceptual profile/package
+        def stereotypeOwner = stereotype.getOwner()
+        while (stereotypeOwner != null) {
+            if (stereotypeOwner.getName()?.toLowerCase()?.contains("conceptual")) {
+                if (!conceptualStereotypes.contains(stereotype)) {
+                    conceptualStereotypes.add(stereotype)
+                }
+                break
+            }
+            stereotypeOwner = stereotypeOwner.getOwner()
+        }
+    }
+    
+    return conceptualStereotypes
+}
