@@ -1,0 +1,270 @@
+/**
+ * Validation Rule: IML Flow Property Dataset Typing Constraint
+ * IML-033
+ * Requirement: Flow Properties owned by IML Interfaces shall be typed by IML Datasets.
+ */
+
+import com.nomagic.magicdraw.core.Application
+import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.*
+import com.nomagic.uml2.ext.magicdraw.classes.mdinterfaces.*
+import com.nomagic.uml2.ext.magicdraw.compositestructures.mdports.*
+import com.nomagic.uml2.ext.magicdraw.commonbehaviors.mdcommunications.*
+
+// Get the element being validated
+Element element = validationTarget
+
+// Check if this is a Flow Property owned by an IML Interface
+if (!isFlowPropertyInIMLInterface(element)) {
+    return // Not applicable to this element
+}
+
+Property flowProperty = (Property) element
+Type propertyType = flowProperty.getType()
+
+// Check if the Flow Property has a type
+if (propertyType == null) {
+    Application.getInstance().getGUILog().log(
+        "Flow Property '${flowProperty.getName()}' in IML Interface '${flowProperty.getOwner().getName()}' has no type assigned"
+    )
+    return false
+}
+
+// Check if the type is an IML Dataset
+if (!isIMLDataset(propertyType)) {
+    Application.getInstance().getGUILog().log(
+        "Flow Property '${flowProperty.getName()}' in IML Interface '${flowProperty.getOwner().getName()}' is typed by '${propertyType.getName()}' which is not an IML Dataset"
+    )
+    return false
+}
+
+// Validation passed
+return true
+
+/**
+ * Determines if the element is a Flow Property owned by an IML Interface
+ */
+boolean isFlowPropertyInIMLInterface(Element element) {
+    // Must be a Property
+    if (!(element instanceof Property)) {
+        return false
+    }
+    
+    Property property = (Property) element
+    
+    // Must be a Flow Property
+    if (!isFlowProperty(property)) {
+        return false
+    }
+    
+    // Must be owned by an IML Interface
+    Element owner = property.getOwner()
+    if (!isIMLInterface(owner)) {
+        return false
+    }
+    
+    return true
+}
+
+/**
+ * Check if element is a Flow Property
+ */
+boolean isFlowProperty(Property property) {
+    // Check for flow-related stereotypes
+    if (hasStereotype(property, "FlowProperty") ||
+        hasStereotype(property, "Flow Property") ||
+        hasStereotype(property, "ItemFlow") ||
+        hasStereotype(property, "FlowSpecification")) {
+        return true
+    }
+    
+    // Check for flow direction properties
+    if (hasFlowDirection(property)) {
+        return true
+    }
+    
+    // Check for naming conventions (optional)
+    String name = property.getName()
+    if (name != null && (name.toLowerCase().contains("flow") || 
+                        name.toLowerCase().startsWith("f_"))) {
+        return true
+    }
+    
+    return false
+}
+
+/**
+ * Determines if the element is an IML Interface
+ */
+boolean isIMLInterface(Element element) {
+    // Check if element is an Interface
+    if (!(element instanceof Interface)) {
+        return false
+    }
+    
+    // Method 1: Check for IML Interface stereotypes
+    if (hasStereotype(element, "IML Interface") || 
+        hasStereotype(element, "IMLInterface") ||
+        hasStereotype(element, "IML Conceptual Interface") ||
+        hasStereotype(element, "IMLConceptualInterface") ||
+        hasStereotype(element, "Conceptual Interface")) {
+        return true
+    }
+    
+    // Method 2: Check if element is in IML package/namespace
+    if (isInIMLNamespace(element)) {
+        return true
+    }
+    
+    // Method 3: Check for naming convention
+    String name = element.getName()
+    if (name != null && (name.startsWith("IML_") || 
+                        name.contains("Interface") && isInIMLContext(element))) {
+        return true
+    }
+    
+    return false
+}
+
+/**
+ * Determines if the type is an IML Dataset
+ */
+boolean isIMLDataset(Type type) {
+    // Method 1: Check for IML Dataset stereotypes
+    if (hasStereotype(type, "IML Dataset") ||
+        hasStereotype(type, "IMLDataset") ||
+        hasStereotype(type, "Dataset") ||
+        hasStereotype(type, "IML Data Set") ||
+        hasStereotype(type, "DataSet")) {
+        return true
+    }
+    
+    // Method 2: Check if type is in IML Dataset package/namespace
+    if (isInIMLDatasetNamespace(type)) {
+        return true
+    }
+    
+    // Method 3: Check for IML Dataset naming conventions
+    String name = type.getName()
+    if (name != null) {
+        if (name.startsWith("IML_") && name.toLowerCase().contains("dataset")) {
+            return true
+        }
+        if (name.endsWith("Dataset") || name.endsWith("DataSet")) {
+            return isInIMLContext(type)
+        }
+        if (name.toLowerCase().contains("data") && isInIMLNamespace(type)) {
+            return true
+        }
+    }
+    
+    // Method 4: Check if it's a DataType or Class with dataset characteristics
+    if (type instanceof DataType || type instanceof Class) {
+        // Check for data-related stereotypes in IML context
+        if (isInIMLNamespace(type) && hasDataCharacteristics(type)) {
+            return true
+        }
+    }
+    
+    return false
+}
+
+/**
+ * Helper method to check if element has a specific stereotype
+ */
+boolean hasStereotype(Element element, String stereotypeName) {
+    return element.getAppliedStereotype().any { 
+        it.getName().equals(stereotypeName) || 
+        it.getName().toLowerCase().replace(" ", "").equals(stereotypeName.toLowerCase().replace(" ", ""))
+    }
+}
+
+/**
+ * Helper method to check if property has flow direction properties
+ */
+boolean hasFlowDirection(Property property) {
+    // Check for flow direction tags/properties
+    return property.getTaggedValue().any { 
+        String tagName = it.getTagDefinition()?.getName()?.toLowerCase()
+        return tagName?.contains("direction") || 
+               tagName?.contains("flow") ||
+               tagName?.contains("in") ||
+               tagName?.contains("out")
+    }
+}
+
+/**
+ * Helper method to check if element is in IML namespace
+ */
+boolean isInIMLNamespace(Element element) {
+    Element owner = element.getOwner()
+    while (owner != null) {
+        String name = owner.getName()
+        if (name != null && (name.contains("IML") || 
+                           name.contains("Interfaces Modeling Library") ||
+                           name.contains("Interface Model"))) {
+            return true
+        }
+        owner = owner.getOwner()
+    }
+    return false
+}
+
+/**
+ * Helper method to check if element is in IML Dataset namespace
+ */
+boolean isInIMLDatasetNamespace(Element element) {
+    Element owner = element.getOwner()
+    while (owner != null) {
+        String name = owner.getName()
+        if (name != null && (name.contains("Dataset") || 
+                           name.contains("DataSet") ||
+                           name.contains("Data Model") ||
+                           (name.contains("IML") && name.toLowerCase().contains("data")))) {
+            return true
+        }
+        owner = owner.getOwner()
+    }
+    return false
+}
+
+/**
+ * Helper method to check if element is in IML context (broader than strict namespace)
+ */
+boolean isInIMLContext(Element element) {
+    Element owner = element.getOwner()
+    while (owner != null) {
+        String name = owner.getName()
+        if (name != null && name.contains("IML")) {
+            return true
+        }
+        // Check stereotypes of containing packages
+        if (hasStereotype(owner, "IML Package") || hasStereotype(owner, "IMLPackage")) {
+            return true
+        }
+        owner = owner.getOwner()
+    }
+    return false
+}
+
+/**
+ * Helper method to check if type has data-related characteristics
+ */
+boolean hasDataCharacteristics(Type type) {
+    // Check for data-related stereotypes
+    if (hasStereotype(type, "Data") ||
+        hasStereotype(type, "DataStructure") ||
+        hasStereotype(type, "ValueType") ||
+        hasStereotype(type, "Entity")) {
+        return true
+    }
+    
+    // Check if it has attributes that suggest it's a data container
+    if (type instanceof Class) {
+        Class clazz = (Class) type
+        if (!clazz.getOwnedAttribute().isEmpty()) {
+            return true
+        }
+    }
+    
+    return false
+}
