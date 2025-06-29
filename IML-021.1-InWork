@@ -1,0 +1,289 @@
+/**
+ * Validation Rule: Conceptual IML Port Typing Check
+ * IML-021.1
+ * Requirement: Each Conceptual Interfaces Modeling Library (IML) Port 
+ * shall be typed by a Conceptual IML Interface.
+ */
+
+// Import necessary Cameo/MagicDraw classes
+import com.nomagic.magicdraw.core.Application
+import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.*
+import com.nomagic.uml2.ext.magicdraw.compositestructures.mdports.*
+import com.nomagic.uml2.ext.magicdraw.classes.mdinterfaces.*
+import com.nomagic.uml2.ext.magicdraw.auxiliaryconstructs.mdmodels.*
+import com.nomagic.uml2.ext.magicdraw.mdprofiles.*
+
+// Get the current element being validated
+def currentElement = _context
+
+// Check if the current element is a Conceptual IML Port
+if (!isConceptualIMLPort(currentElement)) {
+    return // Rule doesn't apply to non-Conceptual IML Ports
+}
+
+// Get the type of the port
+def portType = currentElement.getType()
+
+// Validate the port type
+if (portType == null) {
+    _validation.addError(currentElement,
+        "Conceptual IML Port '${currentElement.getName()}' is not typed. It must be typed by a Conceptual IML Interface.")
+    return
+}
+
+// Check if the port type is a Conceptual IML Interface
+if (!isConceptualIMLInterface(portType)) {
+    def typeDescription = getTypeDescription(portType)
+    _validation.addError(currentElement,
+        "Conceptual IML Port '${currentElement.getName()}' is typed by '${portType.getName()}' which is ${typeDescription}. It must be typed by a Conceptual IML Interface.")
+}
+
+/**
+ * Helper method to determine if a port is a Conceptual IML Port
+ */
+def isConceptualIMLPort(port) {
+    return isIMLPort(port) && isConceptualElement(port)
+}
+
+/**
+ * Helper method to determine if a port is an IML Port
+ */
+def isIMLPort(port) {
+    if (port == null || !(port instanceof Port)) return false
+    
+    // Check for IML Port stereotype
+    def imlPortStereotype = port.getAppliedStereotype("IMLPort") ||
+                           port.getAppliedStereotype("IML_Port") ||
+                           port.getAppliedStereotype("InterfacesModelingLibrary::Port")
+    
+    if (imlPortStereotype != null) {
+        return true
+    }
+    
+    // Check naming convention
+    def portName = port.getName()
+    if (portName?.contains("IML") || portName?.startsWith("iml")) {
+        return true
+    }
+    
+    // Check if port is owned by an IML element
+    def owner = port.getOwner()
+    if (isIMLServiceElement(owner)) {
+        return true
+    }
+    
+    // Check if port is in IML package
+    def packageOwner = port.getOwner()
+    while (packageOwner != null) {
+        if (packageOwner.getName()?.contains("IML") || 
+            packageOwner.getName()?.contains("Interfaces Modeling Library") ||
+            packageOwner.getName()?.contains("InterfacesModelingLibrary")) {
+            return true
+        }
+        packageOwner = packageOwner.getOwner()
+    }
+    
+    return false
+}
+
+/**
+ * Helper method to determine if an element is a Conceptual element
+ */
+def isConceptualElement(element) {
+    if (element == null) return false
+    
+    // Check for Conceptual stereotype
+    def conceptualStereotype = element.getAppliedStereotype("Conceptual") ||
+                              element.getAppliedStereotype("ConceptualElement")
+    
+    if (conceptualStereotype != null) {
+        return true
+    }
+    
+    // Check tagged values for conceptual designation
+    def taggedValues = element.getTaggedValue()
+    for (taggedValue in taggedValues) {
+        def tagName = taggedValue.getTagDefinition().getName()
+        def tagValue = taggedValue.getValue()?.toString()?.toLowerCase()
+        
+        if ((tagName == "ElementType" && tagValue?.contains("conceptual")) ||
+            (tagName == "Level" && tagValue?.contains("conceptual")) ||
+            (tagName == "AbstractionLevel" && tagValue?.contains("conceptual"))) {
+            return true
+        }
+    }
+    
+    // Check if element is in Conceptual package
+    def owner = element.getOwner()
+    while (owner != null) {
+        if (owner.getName()?.toLowerCase()?.contains("conceptual")) {
+            return true
+        }
+        owner = owner.getOwner()
+    }
+    
+    return false
+}
+
+/**
+ * Helper method to determine if an element is an IML Service element
+ */
+def isIMLServiceElement(element) {
+    if (element == null) return false
+    
+    // Check for specific stereotype
+    def imlServiceStereotype = element.getAppliedStereotype("IMLService") ||
+                              element.getAppliedStereotype("IML_Service") ||
+                              element.getAppliedStereotype("InterfacesModelingLibrary::Service")
+    
+    if (imlServiceStereotype != null) {
+        return true
+    }
+    
+    // Check if element is in IML package/library
+    def owner = element.getOwner()
+    while (owner != null) {
+        if (owner.getName()?.contains("IML") || 
+            owner.getName()?.contains("Interfaces Modeling Library") ||
+            owner.getName()?.contains("InterfacesModelingLibrary")) {
+            return true
+        }
+        owner = owner.getOwner()
+    }
+    
+    // Check naming convention
+    def elementName = element.getName()
+    if (elementName?.contains("IML") || elementName?.endsWith("Service")) {
+        return true
+    }
+    
+    return false
+}
+
+/**
+ * Helper method to determine if an interface is a Conceptual IML Interface
+ */
+def isConceptualIMLInterface(interfaceElement) {
+    return isIMLInterface(interfaceElement) && isConceptualElement(interfaceElement)
+}
+
+/**
+ * Helper method to determine if an interface is an IML Interface
+ */
+def isIMLInterface(interfaceElement) {
+    if (interfaceElement == null) return false
+    
+    // Must be an actual Interface
+    if (!(interfaceElement instanceof Interface)) {
+        return false
+    }
+    
+    // Check for IML Interface stereotype
+    def imlInterfaceStereotype = interfaceElement.getAppliedStereotype("IMLInterface") ||
+                                interfaceElement.getAppliedStereotype("IML_Interface") ||
+                                interfaceElement.getAppliedStereotype("InterfacesModelingLibrary::Interface")
+    
+    if (imlInterfaceStereotype != null) {
+        return true
+    }
+    
+    // Check if interface is in IML package
+    def owner = interfaceElement.getOwner()
+    while (owner != null) {
+        if (owner.getName()?.contains("IML") || 
+            owner.getName()?.contains("Interfaces Modeling Library") ||
+            owner.getName()?.contains("InterfacesModelingLibrary")) {
+            return true
+        }
+        owner = owner.getOwner()
+    }
+    
+    // Check naming convention
+    def interfaceName = interfaceElement.getName()
+    if (interfaceName?.contains("IML")) {
+        return true
+    }
+    
+    // Check if interface name follows interface naming patterns and is in IML context
+    if (interfaceName?.startsWith("I") && interfaceName?.length() > 1 && 
+        Character.isUpperCase(interfaceName.charAt(1))) {
+        // Check if parent elements suggest IML context
+        def parentOwner = interfaceElement.getOwner()
+        while (parentOwner != null) {
+            if (parentOwner.getName()?.contains("Interface") ||
+                parentOwner.getName()?.contains("IML")) {
+                return true
+            }
+            parentOwner = parentOwner.getOwner()
+        }
+    }
+    
+    return false
+}
+
+/**
+ * Helper method to provide a descriptive type description for error messages
+ */
+def getTypeDescription(typeElement) {
+    if (typeElement == null) {
+        return "null/untyped"
+    }
+    
+    def description = []
+    
+    // Check what type of element it is
+    if (typeElement instanceof Interface) {
+        if (isIMLInterface(typeElement)) {
+            if (isConceptualElement(typeElement)) {
+                description.add("a Conceptual IML Interface") // This should pass validation
+            } else {
+                description.add("an IML Interface but not Conceptual")
+            }
+        } else {
+            description.add("an Interface but not an IML Interface")
+        }
+    } else if (typeElement instanceof Class) {
+        description.add("a Class (not an Interface)")
+    } else if (typeElement instanceof DataType) {
+        description.add("a DataType (not an Interface)")
+    } else {
+        description.add("a ${typeElement.getClass().getSimpleName()} (not an Interface)")
+    }
+    
+    // Add conceptual status if it's an interface
+    if (typeElement instanceof Interface && !isConceptualElement(typeElement)) {
+        description.add("non-Conceptual")
+    }
+    
+    // Add IML status
+    if (!isIMLInterface(typeElement) && typeElement instanceof Interface) {
+        description.add("non-IML")
+    }
+    
+    return description.join(", ")
+}
+
+/**
+ * Additional validation method to provide suggestions for fixing violations
+ */
+def provideSuggestions(port, portType) {
+    def suggestions = []
+    
+    if (portType == null) {
+        suggestions.add("Assign a type to the port")
+        suggestions.add("Create or select a Conceptual IML Interface as the port type")
+    } else if (!(portType instanceof Interface)) {
+        suggestions.add("Change the port type from ${portType.getClass().getSimpleName()} to Interface")
+        suggestions.add("Create a Conceptual IML Interface to replace the current type")
+    } else if (!isIMLInterface(portType)) {
+        suggestions.add("Apply IML Interface stereotype to '${portType.getName()}'")
+        suggestions.add("Move '${portType.getName()}' to an IML package")
+        suggestions.add("Replace with an existing IML Interface")
+    } else if (!isConceptualElement(portType)) {
+        suggestions.add("Apply Conceptual stereotype to IML Interface '${portType.getName()}'")
+        suggestions.add("Set ElementType tagged value to 'Conceptual' for '${portType.getName()}'")
+        suggestions.add("Move '${portType.getName()}' to a Conceptual package")
+    }
+    
+    return suggestions
+}
