@@ -1,0 +1,133 @@
+/**
+ * Validation Rule: IML Pub-Sub Interaction Dataset Type Validation
+ * 
+ * Requirement: When a Conceptual Interfaces Modeling Library (IML) Pub-Sub Interaction 
+ * is owned by an IML Interface, the IML Pub-Sub Interaction shall be typed by exactly 
+ * one (1) Conceptual IML Dataset.
+ */
+
+// Get all IML Pub-Sub Interactions in the model
+def imlPubSubInteractions = ElementsOfTypeCollector.collect(
+    project, 
+    com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Class.class, 
+    true
+).findAll { element ->
+    // Check if element is a Conceptual IML Pub-Sub Interaction
+    isConceptualIMLPubSubInteraction(element)
+}
+
+// Validate each IML Pub-Sub Interaction
+imlPubSubInteractions.each { pubSubInteraction ->
+    // Check if owned by an IML Interface
+    if (isOwnedByIMLInterface(pubSubInteraction)) {
+        // Get the types (generalizations/typed by relationships)
+        def types = getTypingDatasets(pubSubInteraction)
+        
+        // Filter for Conceptual IML Datasets
+        def conceptualIMLDatasets = types.findAll { type ->
+            isConceptualIMLDataset(type)
+        }
+        
+        // Validate exactly one Conceptual IML Dataset
+        if (conceptualIMLDatasets.size() != 1) {
+            def message = "IML Pub-Sub Interaction '${pubSubInteraction.name}' " +
+                         "owned by IML Interface must be typed by exactly one (1) " +
+                         "Conceptual IML Dataset. Found: ${conceptualIMLDatasets.size()}"
+            
+            validationResult.addError(pubSubInteraction, message)
+        }
+    }
+}
+
+/**
+ * Helper method to check if element is a Conceptual IML Pub-Sub Interaction
+ */
+def isConceptualIMLPubSubInteraction(element) {
+    // Check stereotypes and/or naming conventions
+    def stereotypes = StereotypesHelper.getStereotypes(element)
+    return stereotypes.any { stereotype ->
+        stereotype.name == "IMLPubSubInteraction" || 
+        stereotype.name == "ConceptualIMLPubSubInteraction"
+    } || element.name?.contains("PubSub") || 
+       hasAppliedProfile(element, "IML") && 
+       element.getClass().getSimpleName().contains("Interaction")
+}
+
+/**
+ * Helper method to check if element is owned by an IML Interface
+ */
+def isOwnedByIMLInterface(element) {
+    def owner = element.owner
+    if (owner == null) return false
+    
+    def stereotypes = StereotypesHelper.getStereotypes(owner)
+    return stereotypes.any { stereotype ->
+        stereotype.name == "IMLInterface" || 
+        stereotype.name == "ConceptualIMLInterface"
+    } || owner.name?.toLowerCase()?.contains("interface") &&
+       hasAppliedProfile(owner, "IML")
+}
+
+/**
+ * Helper method to get typing datasets for the pub-sub interaction
+ * This could be through generalization, dependency, or typing relationships
+ */
+def getTypingDatasets(element) {
+    def types = []
+    
+    // Check generalizations (inheritance)
+    types.addAll(element.generalization?.collect { it.general } ?: [])
+    
+    // Check dependencies with <<type>> stereotype
+    element.clientDependency?.each { dependency ->
+        if (hasTypeStereotype(dependency)) {
+            types.addAll(dependency.supplier)
+        }
+    }
+    
+    // Check for typed by relationships through associations
+    element.association?.each { association ->
+        association.memberEnd?.each { property ->
+            if (property.type != element && property.name?.toLowerCase()?.contains("type")) {
+                types.add(property.type)
+            }
+        }
+    }
+    
+    return types.findAll { it != null }
+}
+
+/**
+ * Helper method to check if element is a Conceptual IML Dataset
+ */
+def isConceptualIMLDataset(element) {
+    if (element == null) return false
+    
+    def stereotypes = StereotypesHelper.getStereotypes(element)
+    return stereotypes.any { stereotype ->
+        stereotype.name == "IMLDataset" || 
+        stereotype.name == "ConceptualIMLDataset"
+    } || element.name?.toLowerCase()?.contains("dataset") &&
+       hasAppliedProfile(element, "IML")
+}
+
+/**
+ * Helper method to check if dependency has type stereotype
+ */
+def hasTypeStereotype(dependency) {
+    def stereotypes = StereotypesHelper.getStereotypes(dependency)
+    return stereotypes.any { stereotype ->
+        stereotype.name?.toLowerCase() == "type" ||
+        stereotype.name?.toLowerCase() == "typedby"
+    }
+}
+
+/**
+ * Helper method to check if element has applied IML profile
+ */
+def hasAppliedProfile(element, profileName) {
+    def appliedProfiles = element.getAppliedStereotypeInstances()
+    return appliedProfiles.any { instance ->
+        instance.classifier?.owner?.name?.contains(profileName)
+    }
+}
